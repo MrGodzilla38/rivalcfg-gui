@@ -1,5 +1,7 @@
 # RivalCFG GUI
 
+# 🇺🇸 English
+
 A Linux desktop configuration tool for the SteelSeries Rival 3 mouse.
 
 ## What It Does
@@ -47,3 +49,53 @@ If no mouse is connected or `rivalcfg` is not found, the application will exit i
 - GTK3
 - python-gobject (`gi`)
 - `rivalcfg` command-line tool
+
+# 🇹🇷 Türkçe
+
+SteelSeries Rival 3 faresi için Linux masaüstü yapılandırma aracı.
+
+## Ne İşe Yarar
+
+Bu uygulama, `rivalcfg` komut satırı aracını kullanarak SteelSeries Rival 3 faresinin aşağıdaki ayarlarını yapmanızı sağlar:
+
+- **DPI:** 5 adet preset değerini slider ile ayarlayın (200–8500 arası, 100'lük adımlarla)
+- **Polling Rate:** 125 / 250 / 500 / 1000 Hz seçimi
+- **RGB Aydınlatma:** Logo ve tekerlek renkleri, ışık efekti (steady, breath, breath-slow, rainbow-shift, disco)
+- **Tüm Ayarları Sıfırlama:** Fareyi fabrika ayarlarına döndürme
+
+## Desteklenen Cihazlar
+
+- SteelSeries Rival 3
+
+> Not: Diğer SteelSeries cihazlar `rivalcfg` tarafından destekleniyor olabilir, ancak bu GUI şu an yalnızca Rival 3 komut setiyle test edilmiştir.
+
+## Kurulum
+
+### 1. Bağımlılıkları yükleyin
+
+```bash
+# rivalcfg (pip ile)
+pip install rivalcfg
+
+# python-gobject (GTK3 bağlamları)
+# Arch Linux / Manjaro:
+pacman -S python-gobject
+
+# Debian / Ubuntu:
+# sudo apt install python3-gi
+```
+
+### 2. Uygulamayı çalıştırın
+
+```bash
+python rivalcfg_gui.py
+```
+
+Fare bağlı değilse veya `rivalcfg` bulunamazsa uygulama başlangıçta hata vererek kapanacaktır.
+
+## Gereksinimler
+
+- Python 3
+- GTK3
+- python-gobject (`gi`)
+- `rivalcfg` komut satırı aracı
