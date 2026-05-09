@@ -125,6 +125,36 @@ scale slider {
     min-width: 16px;
     min-height: 16px;
 }
+
+.danger-btn {
+    background: #2a0a0a;
+    border: 1px solid #e84545;
+    color: #e84545;
+    border-radius: 6px;
+    padding: 8px 20px;
+    font-weight: bold;
+}
+
+.danger-btn:hover {
+    background: #e84545;
+    color: white;
+}
+
+combobox {
+    background: #0f0f1a;
+    color: #ffffff;
+    border: 1px solid #2a2a40;
+    border-radius: 4px;
+}
+
+checkbutton label {
+    color: #666688;
+    font-size: 12px;
+}
+
+checkbutton:checked label {
+    color: #ffaa33;
+}
 """
 
 
@@ -146,8 +176,12 @@ def run_rivalcfg(args, on_done=None):
     def target():
         GLib.idle_add(set_status, "running", "İşlem yapılıyor...")
         try:
+            cmd = ["rivalcfg"]
+            if app_state.get("no_save"):
+                cmd.append("--no-save")
+            cmd.extend(args)
             result = subprocess.run(
-                ["rivalcfg"] + args,
+                cmd,
                 capture_output=True,
                 text=True,
                 timeout=10
@@ -355,21 +389,22 @@ def create_rgb_page():
     card.get_style_context().add_class("card")
     page.pack_start(card, True, True, 0)
 
-    # Bölüm A — Renkler
     colors_title = Gtk.Label(label="RENKLER")
     colors_title.get_style_context().add_class("card-title")
     colors_title.set_halign(Gtk.Align.START)
     card.pack_start(colors_title, False, False, 0)
 
-    app_state["logo_hex"] = "ff0000"
-    app_state["wheel_hex"] = "00ffff"
+    app_state["z1_hex"] = "ff0000"
+    app_state["z2_hex"] = "00ff00"
+    app_state["z3_hex"] = "0000ff"
+    app_state["z4_hex"] = "aa00ff"
 
     def make_color_row(label_text, default_hex, key):
         row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
         row.set_margin_top(4)
 
         lbl = Gtk.Label(label=label_text)
-        lbl.set_size_request(80, -1)
+        lbl.set_size_request(100, -1)
         lbl.set_halign(Gtk.Align.START)
         row.pack_start(lbl, False, False, 0)
 
@@ -405,10 +440,11 @@ def create_rgb_page():
         color_btn.connect("color-set", on_color_set)
         return row
 
-    card.pack_start(make_color_row("Logo", "ff0000", "logo_hex"), False, False, 0)
-    card.pack_start(make_color_row("Tekerlek", "00ffff", "wheel_hex"), False, False, 0)
+    card.pack_start(make_color_row("Z1 - Üst Şerit", "ff0000", "z1_hex"), False, False, 0)
+    card.pack_start(make_color_row("Z2 - Orta Şerit", "00ff00", "z2_hex"), False, False, 0)
+    card.pack_start(make_color_row("Z3 - Alt Şerit", "0000ff", "z3_hex"), False, False, 0)
+    card.pack_start(make_color_row("Z4 - Logo", "aa00ff", "z4_hex"), False, False, 0)
 
-    # Bölüm B — Efekt
     effect_title = Gtk.Label(label="EFEKT")
     effect_title.get_style_context().add_class("card-title")
     effect_title.set_halign(Gtk.Align.START)
@@ -419,7 +455,9 @@ def create_rgb_page():
         ("steady", "steady"),
         ("breath", "breath"),
         ("breath-slow", "breath-slow"),
+        ("breath-fast", "breath-fast"),
         ("rainbow-shift", "rainbow-shift"),
+        ("rainbow-breath", "rainbow-breath"),
         ("disco", "disco")
     ]
     app_state["selected_effect"] = "steady"
@@ -445,31 +483,149 @@ def create_rgb_page():
 
     card.pack_start(eff_box, False, False, 0)
 
-    # Uygula butonu
     apply_btn = Gtk.Button(label="UYGULA")
     apply_btn.get_style_context().add_class("apply-btn")
     apply_btn.set_halign(Gtk.Align.START)
     apply_btn.set_margin_top(8)
 
     def on_apply_rgb(btn):
-        logo_hex = app_state["logo_hex"]
-        wheel_hex = app_state["wheel_hex"]
+        z1 = app_state["z1_hex"]
+        z2 = app_state["z2_hex"]
+        z3 = app_state["z3_hex"]
+        z4 = app_state["z4_hex"]
         effect = app_state["selected_effect"]
 
-        def after_logo(success, msg):
+        def after_z1(success, msg):
             if not success:
                 return
-            run_rivalcfg(["--wheel-color", wheel_hex], after_wheel)
+            run_rivalcfg(["--strip-middle-color", z2], after_z2)
 
-        def after_wheel(success, msg):
+        def after_z2(success, msg):
+            if not success:
+                return
+            run_rivalcfg(["--strip-bottom-color", z3], after_z3)
+
+        def after_z3(success, msg):
+            if not success:
+                return
+            run_rivalcfg(["--logo-color", z4], after_z4)
+
+        def after_z4(success, msg):
             if not success:
                 return
             run_rivalcfg(["--light-effect", effect])
 
-        run_rivalcfg(["--logo-color", logo_hex], after_logo)
+        run_rivalcfg(["--strip-top-color", z1], after_z1)
 
     apply_btn.connect("clicked", on_apply_rgb)
     card.pack_start(apply_btn, False, False, 0)
+
+    return page
+
+
+def create_buttons_page():
+    """Buton eşleme sayfasını oluşturur."""
+    page = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
+    page.set_margin_top(24)
+    page.set_margin_bottom(24)
+    page.set_margin_start(24)
+    page.set_margin_end(24)
+
+    title = Gtk.Label(label="Buton Eşlemeleri")
+    title.get_style_context().add_class("page-title")
+    title.set_halign(Gtk.Align.START)
+    page.pack_start(title, False, False, 0)
+
+    card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+    card.get_style_context().add_class("card")
+    page.pack_start(card, True, True, 0)
+
+    button_options = [
+        "button1", "button2", "button3", "button4", "button5",
+        "button6", "dpi", "scrollup", "scrolldown", "disable"
+    ]
+
+    defaults = {
+        "button1": "button1",
+        "button2": "button2",
+        "button3": "button3",
+        "button4": "button4",
+        "button5": "button5",
+        "button6": "dpi",
+        "scrollup": "scrollup",
+        "scrolldown": "scrolldown",
+    }
+
+    app_state["button_mapping"] = dict(defaults)
+    app_state["button_combos"] = {}
+
+    for btn_name in ["button1", "button2", "button3", "button4", "button5", "button6", "scrollup", "scrolldown"]:
+        row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+        row.set_margin_bottom(6)
+
+        lbl = Gtk.Label(label=btn_name)
+        lbl.set_size_request(100, -1)
+        lbl.set_halign(Gtk.Align.START)
+        row.pack_start(lbl, False, False, 0)
+
+        combo = Gtk.ComboBoxText()
+        for opt in button_options:
+            combo.append_text(opt)
+        combo.set_active(button_options.index(defaults[btn_name]))
+        combo.set_hexpand(True)
+        row.pack_start(combo, True, True, 0)
+        app_state["button_combos"][btn_name] = combo
+
+        def on_changed(widget, name=btn_name):
+            app_state["button_mapping"][name] = widget.get_active_text()
+
+        combo.connect("changed", on_changed)
+        card.pack_start(row, False, False, 0)
+
+    btn_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+    btn_row.set_halign(Gtk.Align.START)
+    btn_row.set_margin_top(8)
+
+    apply_btn = Gtk.Button(label="UYGULA")
+    apply_btn.get_style_context().add_class("apply-btn")
+
+    def on_apply_buttons(btn):
+        m = app_state["button_mapping"]
+        arg = (
+            f"button1={m['button1']}; button2={m['button2']}; "
+            f"button3={m['button3']}; button4={m['button4']}; "
+            f"button5={m['button5']}; button6={m['button6']}; "
+            f"scrollup={m['scrollup']}; scrolldown={m['scrolldown']}; "
+            f"layout=qwerty"
+        )
+        run_rivalcfg(["--buttons", arg])
+
+    apply_btn.connect("clicked", on_apply_buttons)
+    btn_row.pack_start(apply_btn, False, False, 0)
+
+    reset_btn = Gtk.Button(label="SIFIRLA")
+    reset_btn.get_style_context().add_class("reset-btn")
+
+    def on_reset_buttons(btn):
+        defaults = {
+            "button1": "button1",
+            "button2": "button2",
+            "button3": "button3",
+            "button4": "button4",
+            "button5": "button5",
+            "button6": "dpi",
+            "scrollup": "scrollup",
+            "scrolldown": "scrolldown",
+        }
+        app_state["button_mapping"].update(defaults)
+        all_opts = ["button1", "button2", "button3", "button4", "button5", "button6", "dpi", "scrollup", "scrolldown", "disable"]
+        for btn_name, combo in app_state["button_combos"].items():
+            combo.set_active(all_opts.index(defaults[btn_name]))
+
+    reset_btn.connect("clicked", on_reset_buttons)
+    btn_row.pack_start(reset_btn, False, False, 0)
+
+    card.pack_start(btn_row, False, False, 0)
 
     return page
 
@@ -505,9 +661,11 @@ def create_about_page():
     label.set_valign(Gtk.Align.START)
     card.pack_start(label, True, True, 0)
 
+    btn_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+    btn_box.set_halign(Gtk.Align.START)
+
     check_btn = Gtk.Button(label="FAREYI KONTROL ET")
     check_btn.get_style_context().add_class("apply-btn")
-    check_btn.set_halign(Gtk.Align.START)
 
     def on_check_mouse(btn):
         def cb(success, msg):
@@ -516,7 +674,41 @@ def create_about_page():
         run_rivalcfg(["--list"], cb)
 
     check_btn.connect("clicked", on_check_mouse)
-    card.pack_start(check_btn, False, False, 0)
+    btn_box.pack_start(check_btn, False, False, 0)
+
+    fw_btn = Gtk.Button(label="FİRMWARE SÜRÜMÜ")
+    fw_btn.get_style_context().add_class("apply-btn")
+
+    def on_firmware(btn):
+        def cb(success, msg):
+            if success:
+                GLib.idle_add(set_status, "ok", f"✓ Firmware: {msg}")
+        run_rivalcfg(["--firmware-version"], cb)
+
+    fw_btn.connect("clicked", on_firmware)
+    btn_box.pack_start(fw_btn, False, False, 0)
+
+    reset_btn = Gtk.Button(label="FABRIKA SIFIRLA")
+    reset_btn.get_style_context().add_class("danger-btn")
+
+    def on_factory_reset(btn):
+        dialog = Gtk.MessageDialog(
+            parent=app_state.get("window"),
+            flags=Gtk.DialogFlags.MODAL,
+            type=Gtk.MessageType.WARNING,
+            buttons=Gtk.ButtonsType.OK_CANCEL,
+            message_format="Tüm ayarlar fabrika değerlerine döndürülecek. Emin misiniz?"
+        )
+        dialog.set_title("Fabrika Ayarlarına Sıfırla")
+        response = dialog.run()
+        dialog.destroy()
+        if response == Gtk.ResponseType.OK:
+            run_rivalcfg(["--reset"])
+
+    reset_btn.connect("clicked", on_factory_reset)
+    btn_box.pack_start(reset_btn, False, False, 0)
+
+    card.pack_start(btn_box, False, False, 0)
 
     return page
 
@@ -527,6 +719,7 @@ def create_window():
     window.set_default_size(860, 580)
     window.set_resizable(True)
     window.connect("destroy", Gtk.main_quit)
+    app_state["window"] = window
 
     # CSS uygula
     css_provider = Gtk.CssProvider()
@@ -571,6 +764,7 @@ def create_window():
         ("dpi", "DPI", create_dpi_page()),
         ("polling", "POLLING", create_polling_page()),
         ("rgb", "RGB", create_rgb_page()),
+        ("buttons", "BUTONLAR", create_buttons_page()),
         ("about", "HAKKINDA", create_about_page()),
     ]
 
@@ -610,6 +804,15 @@ def create_window():
     status_label.set_halign(Gtk.Align.START)
     status_bar.pack_start(status_label, False, False, 0)
     app_state["status_label"] = status_label
+
+    app_state["no_save"] = False
+    no_save_check = Gtk.CheckButton(label="Kaydetme (--no-save)")
+    status_bar.pack_end(no_save_check, False, False, 0)
+
+    def on_no_save_toggled(button):
+        app_state["no_save"] = button.get_active()
+
+    no_save_check.connect("toggled", on_no_save_toggled)
 
     # Başlangıçta fare durumunu kontrol et
     def startup_check():
