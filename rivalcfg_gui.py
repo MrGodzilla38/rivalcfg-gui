@@ -731,14 +731,17 @@ def create_about_page():
     check_btn.get_style_context().add_class("apply-btn")
 
     def on_check_mouse(btn):
-        def cb(success, msg):
-            if success:
+        def on_detect(success, msg):
+            if success and "184c" in msg:
                 GLib.idle_add(set_status, "ok", "✓ Fare bağlı")
-                GLib.idle_add(app_state["devices_buffer"].set_text, msg)
             else:
                 GLib.idle_add(set_status, "error", "✗ Fare bulunamadı")
-                GLib.idle_add(app_state["devices_buffer"].set_text, "Cihaz bulunamadı.")
-        run_rivalcfg(["--list"], cb)
+
+        def on_list(success, msg):
+            GLib.idle_add(app_state["devices_buffer"].set_text, msg if msg else "Cihaz bulunamadı.")
+
+        run_rivalcfg(["--print-debug"], on_detect)
+        run_rivalcfg(["--list"], on_list)
 
     check_btn.connect("clicked", on_check_mouse)
     btn_box.pack_start(check_btn, False, False, 0)
@@ -750,6 +753,8 @@ def create_about_page():
         def cb(success, msg):
             if success:
                 GLib.idle_add(set_status, "ok", f"✓ Firmware: {msg}")
+            else:
+                GLib.idle_add(set_status, "error", "✗ Fare takılı değil")
         run_rivalcfg(["--firmware-version"], cb)
 
     fw_btn.connect("clicked", on_firmware)
@@ -770,7 +775,10 @@ def create_about_page():
         response = dialog.run()
         dialog.destroy()
         if response == Gtk.ResponseType.OK:
-            run_rivalcfg(["--reset"])
+            def cb(success, msg):
+                if not success:
+                    GLib.idle_add(set_status, "error", "✗ Fare takılı değil")
+            run_rivalcfg(["--reset"], cb)
 
     reset_btn.connect("clicked", on_factory_reset)
     btn_box.pack_start(reset_btn, False, False, 0)
@@ -885,13 +893,11 @@ def create_window():
     # Başlangıçta fare durumunu kontrol et
     def startup_check():
         def cb(success, msg):
-            if success:
+            if success and "184c" in msg:
                 set_status("ok", "✓ Fare bağlı")
-                app_state["devices_buffer"].set_text(msg)
             else:
                 set_status("error", "✗ Fare bulunamadı")
-                app_state["devices_buffer"].set_text("Cihaz bulunamadı.")
-        run_rivalcfg(["--list"], cb)
+        run_rivalcfg(["--print-debug"], cb)
 
     GLib.idle_add(startup_check)
 
