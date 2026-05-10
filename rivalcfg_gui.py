@@ -716,7 +716,7 @@ def create_about_page():
 def create_window():
     """Ana pencereyi ve içeriğini oluşturur."""
     window = Gtk.Window(title="RivalCFG GUI — Rival 3")
-    window.set_default_size(860, 580)
+    window.set_default_size(1280, 720)
     window.set_resizable(True)
     window.connect("destroy", Gtk.main_quit)
     app_state["window"] = window
