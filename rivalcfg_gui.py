@@ -592,11 +592,11 @@ def create_buttons_page():
     def on_apply_buttons(btn):
         m = app_state["button_mapping"]
         arg = (
-            f"button1={m['button1']}; button2={m['button2']}; "
+            f"buttons(button1={m['button1']}; button2={m['button2']}; "
             f"button3={m['button3']}; button4={m['button4']}; "
             f"button5={m['button5']}; button6={m['button6']}; "
             f"scrollup={m['scrollup']}; scrolldown={m['scrolldown']}; "
-            f"layout=qwerty"
+            f"layout=qwerty)"
         )
         run_rivalcfg(["--buttons", arg])
 
