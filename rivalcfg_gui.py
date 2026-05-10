@@ -630,6 +630,53 @@ def create_buttons_page():
     return page
 
 
+def create_devices_page():
+    page = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
+    page.set_margin_top(24)
+    page.set_margin_bottom(24)
+    page.set_margin_start(24)
+    page.set_margin_end(24)
+
+    title = Gtk.Label(label="Bağlı Cihazlar")
+    title.get_style_context().add_class("page-title")
+    title.set_halign(Gtk.Align.START)
+    page.pack_start(title, False, False, 0)
+
+    card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+    card.get_style_context().add_class("card")
+    page.pack_start(card, True, True, 0)
+
+    textview = Gtk.TextView()
+    textview.set_editable(False)
+    textview.set_cursor_visible(False)
+    textview.set_wrap_mode(Gtk.WrapMode.WORD)
+    textview.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 0, 0, 0))
+    textview.override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0.8, 0.8, 0.9, 1))
+    app_state["devices_buffer"] = textview.get_buffer()
+    app_state["devices_buffer"].set_text("Taramak için butona bas...")
+    scrolled = Gtk.ScrolledWindow()
+    scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+    scrolled.set_min_content_height(200)
+    scrolled.set_vexpand(True)
+    scrolled.add(textview)
+    card.pack_start(scrolled, True, True, 0)
+
+    refresh_btn = Gtk.Button(label="YENİLE")
+    refresh_btn.get_style_context().add_class("apply-btn")
+    refresh_btn.set_halign(Gtk.Align.START)
+    refresh_btn.set_margin_top(8)
+
+    def on_refresh(btn):
+        def cb(success, msg):
+            GLib.idle_add(app_state["devices_buffer"].set_text, msg)
+        run_rivalcfg(["--list"], cb)
+
+    refresh_btn.connect("clicked", on_refresh)
+    card.pack_start(refresh_btn, False, False, 0)
+
+    return page
+
+
 def create_about_page():
     """Hakkında sayfasını oluşturur."""
     page = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
@@ -652,14 +699,30 @@ def create_about_page():
         "rivalcfg kütüphanesi üzerine inşa edilmiştir.\n\n"
         "Gereksinimler:\n"
         "  pip install rivalcfg\n"
-        "  pacman -S python-gobject\n\n"
-        "GitHub: github.com/[kullanıcıadı]/rivalcfg-gui"
+        "  pacman -S python-gobject"
     )
     label = Gtk.Label(label=text)
     label.set_line_wrap(True)
     label.set_halign(Gtk.Align.START)
     label.set_valign(Gtk.Align.START)
-    card.pack_start(label, True, True, 0)
+    card.pack_start(label, False, False, 0)
+
+    github_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
+    github_box.set_halign(Gtk.Align.START)
+
+    github_prefix = Gtk.Label(label="GitHub: ")
+    github_prefix.set_halign(Gtk.Align.START)
+    github_box.pack_start(github_prefix, False, False, 0)
+
+    link_btn = Gtk.LinkButton(
+        uri="https://github.com/MrGodzilla38/rivalcfg-gui",
+        label="github.com/MrGodzilla38/rivalcfg-gui"
+    )
+    link_btn.set_halign(Gtk.Align.START)
+    link_btn.set_relief(Gtk.ReliefStyle.NONE)
+    github_box.pack_start(link_btn, False, False, 0)
+
+    card.pack_start(github_box, False, False, 0)
 
     btn_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
     btn_box.set_halign(Gtk.Align.START)
@@ -670,7 +733,11 @@ def create_about_page():
     def on_check_mouse(btn):
         def cb(success, msg):
             if success:
-                GLib.idle_add(set_status, "ok", f"✓ Fare bağlı: {msg}")
+                GLib.idle_add(set_status, "ok", "✓ Fare bağlı")
+                GLib.idle_add(app_state["devices_buffer"].set_text, msg)
+            else:
+                GLib.idle_add(set_status, "error", "✗ Fare bulunamadı")
+                GLib.idle_add(app_state["devices_buffer"].set_text, "Cihaz bulunamadı.")
         run_rivalcfg(["--list"], cb)
 
     check_btn.connect("clicked", on_check_mouse)
@@ -765,6 +832,7 @@ def create_window():
         ("polling", "POLLING", create_polling_page()),
         ("rgb", "RGB", create_rgb_page()),
         ("buttons", "BUTONLAR", create_buttons_page()),
+        ("devices", "CİHAZLAR", create_devices_page()),
         ("about", "HAKKINDA", create_about_page()),
     ]
 
@@ -818,9 +886,11 @@ def create_window():
     def startup_check():
         def cb(success, msg):
             if success:
-                set_status("ok", f"✓ Fare bağlı: {msg}")
+                set_status("ok", "✓ Fare bağlı")
+                app_state["devices_buffer"].set_text(msg)
             else:
                 set_status("error", "✗ Fare bulunamadı")
+                app_state["devices_buffer"].set_text("Cihaz bulunamadı.")
         run_rivalcfg(["--list"], cb)
 
     GLib.idle_add(startup_check)
