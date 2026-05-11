@@ -29,10 +29,10 @@ pip install rivalcfg
 
 # python-gobject (GTK3 bindings)
 # Arch Linux / Manjaro:
-pacman -S python-gobject
+pacman -S python-gobject python-cairo
 
 # Debian / Ubuntu:
-# sudo apt install python3-gi
+# sudo apt install python3-gi python3-cairo
 ```
 
 ### 2. Run the application
@@ -48,6 +48,7 @@ If no mouse is connected or `rivalcfg` is not found, the application will exit i
 - Python 3
 - GTK3
 - python-gobject (`gi`)
+- python-cairo (`cairo`)
 - `rivalcfg` command-line tool
 
 # 🇹🇷 Türkçe
@@ -79,10 +80,10 @@ pip install rivalcfg
 
 # python-gobject (GTK3 bağlamları)
 # Arch Linux / Manjaro:
-pacman -S python-gobject
+pacman -S python-gobject python-cairo
 
 # Debian / Ubuntu:
-# sudo apt install python3-gi
+# sudo apt install python3-gi python3-cairo
 ```
 
 ### 2. Uygulamayı çalıştırın
@@ -98,4 +99,5 @@ Fare bağlı değilse veya `rivalcfg` bulunamazsa uygulama başlangıçta hata v
 - Python 3
 - GTK3
 - python-gobject (`gi`)
+- python-cairo (`cairo`)
 - `rivalcfg` komut satırı aracı
