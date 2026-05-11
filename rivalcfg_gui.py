@@ -2,6 +2,7 @@
 
 # GTK3 bağımlılığı kontrolü
 import sys
+import os
 import subprocess
 import threading
 import math
@@ -9,7 +10,7 @@ import math
 try:
     import gi
     gi.require_version('Gtk', '3.0')
-    from gi.repository import Gtk, Gdk, GLib
+    from gi.repository import Gtk, Gdk, GLib, GdkPixbuf
 except ImportError:
     print("python-gobject kurulu değil. Kur: pacman -S python-gobject")
     sys.exit(1)
@@ -656,9 +657,6 @@ def create_buttons_page():
     right_card.get_style_context().add_class("card")
     content.pack_start(right_card, True, True, 0)
 
-    import os
-    from gi.repository import GdkPixbuf
-
     img_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "rival3.png")
 
     overlay = Gtk.Overlay()
@@ -937,10 +935,17 @@ def create_about_page():
 
 def create_window():
     """Ana pencereyi ve içeriğini oluşturur."""
-    window = Gtk.Window(title="RivalCFG GUI — Rival 3")
+    window = Gtk.Window(title="RivalCFG GUI")
     window.set_default_size(1280, 720)
     window.set_resizable(True)
     window.connect("destroy", Gtk.main_quit)
+
+    # Pencere simgesi
+    icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logo.png")
+    if os.path.exists(icon_path):
+        icon_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(icon_path, 128, 128, True)
+        window.set_icon(icon_pixbuf)
+
     app_state["window"] = window
 
     # CSS uygula
@@ -969,8 +974,16 @@ def create_window():
     sidebar.set_margin_end(16)
     main_box.pack_start(sidebar, False, False, 0)
 
+    # Sidebar logo
+    icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logo.png")
+    if os.path.exists(icon_path):
+        logo_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(icon_path, 100, 100, True)
+        logo_img = Gtk.Image.new_from_pixbuf(logo_pixbuf)
+        logo_img.set_margin_bottom(8)
+        sidebar.pack_start(logo_img, False, False, 0)
+
     # Marka başlığı
-    brand = Gtk.Label(label="RIVAL 3")
+    brand = Gtk.Label(label="RivalCFG GUI")
     brand.get_style_context().add_class("page-title")
     brand.set_margin_bottom(20)
     sidebar.pack_start(brand, False, False, 0)
