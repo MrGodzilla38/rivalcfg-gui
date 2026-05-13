@@ -20,7 +20,7 @@ except ImportError:
 try:
     subprocess.run(["rivalcfg"], capture_output=True, timeout=5)
 except FileNotFoundError:
-    print("rivalcfg kurulu değil. Kur: pip install rivalcfg")
+    print("rivalcfg kurulu değil. Kur: yay -S rivalcfg")
     sys.exit(1)
 
 # Uygulama durumunu tutan tek global sözlük
@@ -200,7 +200,7 @@ def run_rivalcfg(args, on_done=None):
                 if on_done:
                     GLib.idle_add(on_done, True, out)
         except FileNotFoundError:
-            msg = "rivalcfg kurulu değil. Kur: pip install rivalcfg"
+            msg = "rivalcfg kurulu değil. Kur: yay -S rivalcfg"
             GLib.idle_add(set_status, "error", f"✗ Hata: {msg}")
             if on_done:
                 GLib.idle_add(on_done, False, msg)
@@ -844,8 +844,8 @@ def create_about_page():
         "SteelSeries Rival 3 için Linux GUI yapılandırma aracı.\n"
         "rivalcfg kütüphanesi üzerine inşa edilmiştir.\n\n"
         "Gereksinimler:\n"
-        "  pip install rivalcfg\n"
-        "  pacman -S python-gobject"
+        "  yay -S install rivalcfg\n"
+        "  pacman -S python-gobject python-cairo"
     )
     label = Gtk.Label(label=text)
     label.set_line_wrap(True)

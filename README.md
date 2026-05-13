@@ -24,8 +24,8 @@ This application lets you configure your SteelSeries Rival 3 using the `rivalcfg
 ### 1. Install dependencies
 
 ```bash
-# rivalcfg (via pip)
-pip install rivalcfg
+# rivalcfg 
+yay -S install rivalcfg
 
 # python-gobject (GTK3 bindings)
 # Arch Linux / Manjaro:
@@ -75,8 +75,8 @@ Bu uygulama, `rivalcfg` komut satırı aracını kullanarak SteelSeries Rival 3 
 ### 1. Bağımlılıkları yükleyin
 
 ```bash
-# rivalcfg (pip ile)
-pip install rivalcfg
+# rivalcfg
+yay -S rivalcfg
 
 # python-gobject (GTK3 bağlamları)
 # Arch Linux / Manjaro:
