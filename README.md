@@ -21,23 +21,45 @@ This application lets you configure your SteelSeries Rival 3 using the `rivalcfg
 
 ## Installation
 
-### 1. Install dependencies
+### Automatic (Recommended)
+
+An automated installer script is included. It detects your distribution, installs dependencies, copies the application system-wide, creates a desktop entry, and sets up a `rivalcfg-gui` command.
 
 ```bash
-# rivalcfg 
-yay -S install rivalcfg
-
-# python-gobject (GTK3 bindings)
-# Arch Linux / Manjaro:
-pacman -S python-gobject python-cairo
-
-# Debian / Ubuntu:
-# sudo apt install python3-gi python3-cairo
+chmod +x install.sh
+sudo ./install.sh
 ```
 
-### 2. Run the application
+**What it does:**
+- Detects your distro (Arch, Debian, Fedora, openSUSE and derivatives)
+- Installs required packages (`rivalcfg`, `python-gobject`, `python-cairo`)
+- Copies files to `/usr/local/share/rivalcfg-gui/`
+- Creates symlink at `/usr/local/bin/rivalcfg-gui`
+- Creates desktop entry at `/usr/share/applications/rivalcfg-gui.desktop`
+
+**Uninstall:**
+```bash
+sudo ./install.sh --uninstall
+```
+
+### Manual
 
 ```bash
+# 1. Install dependencies
+
+# rivalcfg (Arch via AUR)
+yay -S rivalcfg
+
+# rivalcfg (Debian/Ubuntu)
+# sudo apt install rivalcfg
+
+# python-gobject & python-cairo (Arch)
+sudo pacman -S python-gobject python-cairo
+
+# python-gobject & python-cairo (Debian/Ubuntu)
+# sudo apt install python3-gi python3-cairo
+
+# 2. Run
 python rivalcfg_gui.py
 ```
 
@@ -45,11 +67,13 @@ If no mouse is connected or `rivalcfg` is not found, the application will exit i
 
 ## Requirements
 
-- Python 3
-- GTK3
-- python-gobject (`gi`)
-- python-cairo (`cairo`)
-- `rivalcfg` command-line tool
+| Package | Purpose |
+|---------|---------|
+| Python 3 | Runtime |
+| GTK3 | UI framework |
+| python-gobject (`gi`) | Python GTK3 bindings |
+| python-cairo (`cairo`) | Python Cairo bindings |
+| `rivalcfg` | SteelSeries CLI tool |
 
 # 🇹🇷 Türkçe
 
@@ -72,23 +96,45 @@ Bu uygulama, `rivalcfg` komut satırı aracını kullanarak SteelSeries Rival 3 
 
 ## Kurulum
 
-### 1. Bağımlılıkları yükleyin
+### Otomatik Kurulum (Tavsiye Edilen)
+
+Projeye dahil edilen `install.sh` scripti, dağıtımınızı algılayıp bağımlılıkları kurar, uygulamayı sistem geneline kopyalar, masaüstü kısayolu oluşturur ve `rivalcfg-gui` komutunu kullanıma sunar.
 
 ```bash
-# rivalcfg
-yay -S rivalcfg
-
-# python-gobject (GTK3 bağlamları)
-# Arch Linux / Manjaro:
-pacman -S python-gobject python-cairo
-
-# Debian / Ubuntu:
-# sudo apt install python3-gi python3-cairo
+chmod +x install.sh
+sudo ./install.sh
 ```
 
-### 2. Uygulamayı çalıştırın
+**Yaptıkları:**
+- Dağıtımınızı algılar (Arch, Debian, Fedora, openSUSE ve türevleri)
+- Gerekli paketleri kurar (`rivalcfg`, `python-gobject`, `python-cairo`)
+- Dosyaları `/usr/local/share/rivalcfg-gui/` dizinine kopyalar
+- `/usr/local/bin/rivalcfg-gui` sembolik bağı oluşturur
+- `/usr/share/applications/rivalcfg-gui.desktop` kısayolunu oluşturur
+
+**Kaldırma:**
+```bash
+sudo ./install.sh --uninstall
+```
+
+### Manuel Kurulum
 
 ```bash
+# 1. Bağımlılıkları yükleyin
+
+# rivalcfg (Arch - AUR)
+yay -S rivalcfg
+
+# rivalcfg (Debian/Ubuntu)
+# sudo apt install rivalcfg
+
+# python-gobject & python-cairo (Arch)
+sudo pacman -S python-gobject python-cairo
+
+# python-gobject & python-cairo (Debian/Ubuntu)
+# sudo apt install python3-gi python3-cairo
+
+# 2. Çalıştırın
 python rivalcfg_gui.py
 ```
 
@@ -96,8 +142,10 @@ Fare bağlı değilse veya `rivalcfg` bulunamazsa uygulama başlangıçta hata v
 
 ## Gereksinimler
 
-- Python 3
-- GTK3
-- python-gobject (`gi`)
-- python-cairo (`cairo`)
-- `rivalcfg` komut satırı aracı
+| Paket | Amaç |
+|-------|------|
+| Python 3 | Çalışma ortamı |
+| GTK3 | Arayüz iskeleti |
+| python-gobject (`gi`) | Python GTK3 bağlantısı |
+| python-cairo (`cairo`) | Python Cairo bağlantısı |
+| `rivalcfg` | SteelSeries CLI aracı |
