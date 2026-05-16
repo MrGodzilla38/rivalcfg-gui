@@ -5,13 +5,13 @@ Codename: stable
 Architectures: all
 Components: main
 Description: APT repository for RivalCFG GUI
-Date: Sat, 16 May 2026 11:59:05 +0000
+Date: Sat, 16 May 2026 12:42:21 +0000
 MD5Sum:
- c1a55dc110953a476e4ca6ba1e439aa1 792 Packages
- 62e4866a6210fedaf1fe421b160d6cba 545 Packages.gz
+ fdd8763e859e083c51d3482704f5bb0c 792 Packages
+ 404a6240489ffe7e3766f2064e17097d 545 Packages.gz
 SHA1:
- 5d4ea336224048644a19d9f4cfacdf28a6333d59 792 Packages
- bdf61fc52326582c247c5434a8119f1e9c92d7de 545 Packages.gz
+ 976a11666c2f94c77fafdbc162cd1af5519eaf70 792 Packages
+ 4c905cf9d7a14de344c928133c9d51983ede23c2 545 Packages.gz
 SHA256:
- 339556f57a301c0f04b624e1786c952bacf3037b00bfdcff3206a4522ff0260f 792 Packages
- 8aa58d79285503fb590384df97ebc79201874ace10569e1b065e4f0d80d47be3 545 Packages.gz
+ 7236a6cf108223b39cd0f1326e69e583aca70acb0de7cf9bbd2766ac99a8cdee 792 Packages
+ 8cd9728a5f7b195a6910a6d50148b4dfe667724bd315a3a3053a3ec1e60c32e8 545 Packages.gz
