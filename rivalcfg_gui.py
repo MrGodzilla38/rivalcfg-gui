@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# GTK3 bağımlılığı kontrolü
+# GTK3 dependency check
 import sys
 import os
 import subprocess
@@ -13,17 +13,17 @@ try:
     from gi.repository import Gtk, Gdk, GLib, GdkPixbuf
     import cairo
 except ImportError:
-    print("python-gobject kurulu değil. Kur: pacman -S python-gobject")
+    print("python-gobject is not installed. Install: pacman -S python-gobject")
     sys.exit(1)
 
-# rivalcfg CLI aracının varlığını kontrol et
+# Check rivalcfg CLI availability
 try:
     subprocess.run(["rivalcfg"], capture_output=True, timeout=5)
 except FileNotFoundError:
-    print("rivalcfg kurulu değil. Kur: yay -S rivalcfg")
+    print("rivalcfg is not installed. Install: pip install rivalcfg")
     sys.exit(1)
 
-# Uygulama durumunu tutan tek global sözlük
+# Global dictionary holding application state
 app_state = {}
 
 CSS = """
@@ -162,7 +162,7 @@ checkbutton:checked label {
 
 
 def set_status(status_type, message):
-    """Durum çubuğunu güncelle; GUI thread'inden çağrılmalıdır."""
+    """Update status bar; must be called from the GUI thread."""
     dot = app_state["status_dot"]
     label = app_state["status_label"]
 
@@ -175,9 +175,9 @@ def set_status(status_type, message):
 
 
 def run_rivalcfg(args, on_done=None):
-    """rivalcfg komutunu arka plan thread'inde çalıştır."""
+    """Run rivalcfg command in a background thread."""
     def target():
-        GLib.idle_add(set_status, "running", "İşlem yapılıyor...")
+        GLib.idle_add(set_status, "running", "Processing...")
         try:
             cmd = ["rivalcfg"]
             if app_state.get("no_save"):
@@ -190,28 +190,28 @@ def run_rivalcfg(args, on_done=None):
                 timeout=10
             )
             if result.returncode != 0:
-                err = result.stderr.strip() if result.stderr.strip() else "Bilinmeyen hata"
-                GLib.idle_add(set_status, "error", f"✗ Hata: {err}")
+                err = result.stderr.strip() if result.stderr.strip() else "Unknown error"
+                GLib.idle_add(set_status, "error", f"✗ Error: {err}")
                 if on_done:
                     GLib.idle_add(on_done, False, err)
             else:
                 out = result.stdout.strip()
-                GLib.idle_add(set_status, "ok", "✓ Tamamlandı")
+                GLib.idle_add(set_status, "ok", "✓ Done")
                 if on_done:
                     GLib.idle_add(on_done, True, out)
         except FileNotFoundError:
-            msg = "rivalcfg kurulu değil. Kur: yay -S rivalcfg"
-            GLib.idle_add(set_status, "error", f"✗ Hata: {msg}")
+            msg = "rivalcfg is not installed. Install: pip install rivalcfg"
+            GLib.idle_add(set_status, "error", f"✗ Error: {msg}")
             if on_done:
                 GLib.idle_add(on_done, False, msg)
         except subprocess.TimeoutExpired:
-            msg = "Zaman aşımı (10s)"
-            GLib.idle_add(set_status, "error", f"✗ Hata: {msg}")
+            msg = "Timeout (10s)"
+            GLib.idle_add(set_status, "error", f"✗ Error: {msg}")
             if on_done:
                 GLib.idle_add(on_done, False, msg)
         except Exception as e:
-            msg = f"Beklenmeyen hata: {e}"
-            GLib.idle_add(set_status, "error", f"✗ Hata: {msg}")
+            msg = f"Unexpected error: {e}"
+            GLib.idle_add(set_status, "error", f"✗ Error: {msg}")
             if on_done:
                 GLib.idle_add(on_done, False, msg)
 
@@ -219,7 +219,7 @@ def run_rivalcfg(args, on_done=None):
 
 
 def rgba_to_hex(rgba):
-    """Gdk.RGBA değerini # işaretsiz küçük harfli hex stringe çevirir."""
+    """Convert Gdk.RGBA to lowercase hex string without #."""
     r = int(rgba.red * 255)
     g = int(rgba.green * 255)
     b = int(rgba.blue * 255)
@@ -227,14 +227,14 @@ def rgba_to_hex(rgba):
 
 
 def create_dpi_page():
-    """DPI ayarları sayfasını oluşturur."""
+    """Create DPI settings page."""
     page = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
     page.set_margin_top(24)
     page.set_margin_bottom(24)
     page.set_margin_start(24)
     page.set_margin_end(24)
 
-    title = Gtk.Label(label="DPI Ayarları")
+    title = Gtk.Label(label="DPI Settings")
     title.get_style_context().add_class("page-title")
     title.set_halign(Gtk.Align.START)
     page.pack_start(title, False, False, 0)
@@ -286,7 +286,7 @@ def create_dpi_page():
     btn_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
     btn_row.set_halign(Gtk.Align.START)
 
-    apply_btn = Gtk.Button(label="UYGULA")
+    apply_btn = Gtk.Button(label="APPLY")
     apply_btn.get_style_context().add_class("apply-btn")
 
     def on_apply_dpi(btn):
@@ -297,7 +297,7 @@ def create_dpi_page():
     apply_btn.connect("clicked", on_apply_dpi)
     btn_row.pack_start(apply_btn, False, False, 0)
 
-    reset_btn = Gtk.Button(label="SIFIRLA")
+    reset_btn = Gtk.Button(label="RESET")
     reset_btn.get_style_context().add_class("reset-btn")
 
     def on_reset_dpi(btn):
@@ -314,7 +314,7 @@ def create_dpi_page():
 
 
 def create_polling_page():
-    """Polling Rate sayfasını oluşturur."""
+    """Create Polling Rate page."""
     page = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
     page.set_margin_top(24)
     page.set_margin_bottom(24)
@@ -376,14 +376,14 @@ def create_polling_page():
 
 
 def create_rgb_page():
-    """RGB Aydınlatma sayfasını oluşturur."""
+    """Create RGB Lighting page."""
     page = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
     page.set_margin_top(24)
     page.set_margin_bottom(24)
     page.set_margin_start(24)
     page.set_margin_end(24)
 
-    title = Gtk.Label(label="RGB Aydınlatma")
+    title = Gtk.Label(label="RGB Lighting")
     title.get_style_context().add_class("page-title")
     title.set_halign(Gtk.Align.START)
     page.pack_start(title, False, False, 0)
@@ -392,7 +392,7 @@ def create_rgb_page():
     card.get_style_context().add_class("card")
     page.pack_start(card, True, True, 0)
 
-    colors_title = Gtk.Label(label="RENKLER")
+    colors_title = Gtk.Label(label="COLORS")
     colors_title.get_style_context().add_class("card-title")
     colors_title.set_halign(Gtk.Align.START)
     card.pack_start(colors_title, False, False, 0)
@@ -443,12 +443,12 @@ def create_rgb_page():
         color_btn.connect("color-set", on_color_set)
         return row
 
-    card.pack_start(make_color_row("Z1 - Üst Şerit", "ff0000", "z1_hex"), False, False, 0)
-    card.pack_start(make_color_row("Z2 - Orta Şerit", "00ff00", "z2_hex"), False, False, 0)
-    card.pack_start(make_color_row("Z3 - Alt Şerit", "0000ff", "z3_hex"), False, False, 0)
+    card.pack_start(make_color_row("Z1 - Top Strip", "ff0000", "z1_hex"), False, False, 0)
+    card.pack_start(make_color_row("Z2 - Middle Strip", "00ff00", "z2_hex"), False, False, 0)
+    card.pack_start(make_color_row("Z3 - Bottom Strip", "0000ff", "z3_hex"), False, False, 0)
     card.pack_start(make_color_row("Z4 - Logo", "aa00ff", "z4_hex"), False, False, 0)
 
-    effect_title = Gtk.Label(label="EFEKT")
+    effect_title = Gtk.Label(label="EFFECT")
     effect_title.get_style_context().add_class("card-title")
     effect_title.set_halign(Gtk.Align.START)
     effect_title.set_margin_top(12)
@@ -527,14 +527,14 @@ def create_rgb_page():
 
 
 def create_buttons_page():
-    """Buton eşleme sayfasını oluşturur."""
+    """Create Button Mapping page."""
     page = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
     page.set_margin_top(24)
     page.set_margin_bottom(24)
     page.set_margin_start(24)
     page.set_margin_end(24)
 
-    title = Gtk.Label(label="Buton Eşlemeleri")
+    title = Gtk.Label(label="Button Mapping")
     title.get_style_context().add_class("page-title")
     title.set_halign(Gtk.Align.START)
     page.pack_start(title, False, False, 0)
@@ -548,7 +548,7 @@ def create_buttons_page():
     left_card.get_style_context().add_class("card")
     content.pack_start(left_card, False, False, 0)
 
-    card_title = Gtk.Label(label="BUTON ATAMALARI")
+    card_title = Gtk.Label(label="BUTTON ASSIGNMENTS")
     card_title.get_style_context().add_class("card-title")
     card_title.set_halign(Gtk.Align.START)
     left_card.pack_start(card_title, False, False, 0)
@@ -573,11 +573,11 @@ def create_buttons_page():
     app_state["button_combos"] = {}
 
     labels = {
-        "button1": "Sol Tık (B1)",
-        "button2": "Sağ Tık (B2)",
-        "button3": "Orta Tık (B3)",
-        "button4": "Geri (B4)",
-        "button5": "İleri (B5)",
+        "button1": "Left Click (B1)",
+        "button2": "Right Click (B2)",
+        "button3": "Middle Click (B3)",
+        "button4": "Back (B4)",
+        "button5": "Forward (B5)",
         "button6": "DPI (B6)",
         "scrollup": "Scroll ↑",
         "scrolldown": "Scroll ↓",
@@ -629,7 +629,7 @@ def create_buttons_page():
     apply_btn.connect("clicked", on_apply_buttons)
     btn_row.pack_start(apply_btn, False, False, 0)
 
-    reset_btn = Gtk.Button(label="SIFIRLA")
+    reset_btn = Gtk.Button(label="RESET")
     reset_btn.get_style_context().add_class("reset-btn")
 
     def on_reset_buttons(btn):
@@ -653,7 +653,7 @@ def create_buttons_page():
 
     left_card.pack_start(btn_row, False, False, 0)
 
-    # --- SAĞ PANEL: FARE GÖRSELİ ---
+    # --- RIGHT PANEL: MOUSE IMAGE ---
     right_card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
     right_card.get_style_context().add_class("card")
     content.pack_start(right_card, True, True, 0)
@@ -671,27 +671,27 @@ def create_buttons_page():
         image_widget.set_valign(Gtk.Align.CENTER)
         overlay.add(image_widget)
     else:
-        fallback = Gtk.Label(label="rival3.png bulunamadı.")
+        fallback = Gtk.Label(label="rival3.png not found.")
         overlay.add(fallback)
 
-    # Etiket overlay'i - DrawingArea sadece çizgiler ve etiketler için
+    # Label overlay - DrawingArea for lines and labels only
     lines_area = Gtk.DrawingArea()
     lines_area.set_hexpand(True)
     lines_area.set_vexpand(True)
     lines_area.set_halign(Gtk.Align.FILL)
     lines_area.set_valign(Gtk.Align.FILL)
-    # Fare olaylarını geçir
+    # Pass through mouse events
     lines_area.set_app_paintable(True)
 
     def draw_lines(widget, cr):
         w = widget.get_allocated_width()
         h = widget.get_allocated_height()
 
-        # Tamamen şeffaf arkaplan
+        # Fully transparent background
         cr.set_source_rgba(0, 0, 0, 0)
         cr.paint()
 
-        # Görselin widget içindeki konumu (320x320, ortalı)
+        # Image position within widget (320x320, centered)
         img_w = 320
         img_h = 320
         img_x = (w - img_w) / 2
@@ -708,15 +708,15 @@ def create_buttons_page():
         }
 
         btn_display_names = {
-            "button1": "Sol Tık",
-            "button2": "Sağ Tık",
-            "button3": "Orta",
-            "button4": "Geri",
-            "button5": "İleri",
+            "button1": "Left Click",
+            "button2": "Right Click",
+            "button3": "Middle",
+            "button4": "Back",
+            "button5": "Forward",
             "button6": "DPI",
         }
 
-        # Etiketler sağ tarafa hizalı
+        # Labels aligned to the right
         lw = 115
         lh = 20
         lx = img_x + img_w + 15
@@ -736,7 +736,7 @@ def create_buttons_page():
             label_text = f"{display_name}: {assigned}"
             ly = label_ys[btn_name]
 
-            # Çizgi
+            # Line
             cr.set_source_rgba(0.4, 0.6, 1.0, 0.7)
             cr.set_line_width(1.2)
             cr.move_to(bx, by)
@@ -757,7 +757,7 @@ def create_buttons_page():
             cr.rectangle(lx, ly, lw, lh)
             cr.stroke()
 
-            # Yazı
+            # Text
             cr.set_source_rgb(1, 1, 1)
             cr.select_font_face("monospace", 0, 0)
             cr.set_font_size(9)
@@ -783,7 +783,7 @@ def create_devices_page():
     page.set_margin_start(24)
     page.set_margin_end(24)
 
-    title = Gtk.Label(label="Bağlı Cihazlar")
+    title = Gtk.Label(label="Connected Devices")
     title.get_style_context().add_class("page-title")
     title.set_halign(Gtk.Align.START)
     page.pack_start(title, False, False, 0)
@@ -799,7 +799,7 @@ def create_devices_page():
     textview.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 0, 0, 0))
     textview.override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0.8, 0.8, 0.9, 1))
     app_state["devices_buffer"] = textview.get_buffer()
-    app_state["devices_buffer"].set_text("Taramak için butona bas...")
+    app_state["devices_buffer"].set_text("Click refresh to scan...")
     scrolled = Gtk.ScrolledWindow()
     scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
     scrolled.set_min_content_height(200)
@@ -807,7 +807,7 @@ def create_devices_page():
     scrolled.add(textview)
     card.pack_start(scrolled, True, True, 0)
 
-    refresh_btn = Gtk.Button(label="YENİLE")
+    refresh_btn = Gtk.Button(label="REFRESH")
     refresh_btn.get_style_context().add_class("apply-btn")
     refresh_btn.set_halign(Gtk.Align.START)
     refresh_btn.set_margin_top(8)
@@ -824,14 +824,14 @@ def create_devices_page():
 
 
 def create_about_page():
-    """Hakkında sayfasını oluşturur."""
+    """Create About page."""
     page = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
     page.set_margin_top(24)
     page.set_margin_bottom(24)
     page.set_margin_start(24)
     page.set_margin_end(24)
 
-    title = Gtk.Label(label="Hakkında")
+    title = Gtk.Label(label="About")
     title.get_style_context().add_class("page-title")
     title.set_halign(Gtk.Align.START)
     page.pack_start(title, False, False, 0)
@@ -841,10 +841,10 @@ def create_about_page():
     page.pack_start(card, True, True, 0)
 
     text = (
-        "SteelSeries fareler için Linux GUI yapılandırma aracı.\n"
-        "rivalcfg kütüphanesi üzerine inşa edilmiştir.\n\n"
-        "Gereksinimler:\n"
-        "  yay -S install rivalcfg\n"
+        "Linux GUI configuration tool for SteelSeries mice.\n"
+        "Built on top of the rivalcfg library.\n\n"
+        "Requirements:\n"
+        "  pip install rivalcfg\n"
         "  pacman -S python-gobject python-cairo"
     )
     label = Gtk.Label(label=text)
@@ -873,18 +873,18 @@ def create_about_page():
     btn_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
     btn_box.set_halign(Gtk.Align.START)
 
-    check_btn = Gtk.Button(label="FAREYI KONTROL ET")
+    check_btn = Gtk.Button(label="CHECK MOUSE")
     check_btn.get_style_context().add_class("apply-btn")
 
     def on_check_mouse(btn):
         def on_detect(success, msg):
             if success and "184c" in msg:
-                GLib.idle_add(set_status, "ok", "✓ Fare bağlı")
+                GLib.idle_add(set_status, "ok", "✓ Mouse connected")
             else:
-                GLib.idle_add(set_status, "error", "✗ Fare bulunamadı")
+                GLib.idle_add(set_status, "error", "✗ Mouse not found")
 
         def on_list(success, msg):
-            GLib.idle_add(app_state["devices_buffer"].set_text, msg if msg else "Cihaz bulunamadı.")
+            GLib.idle_add(app_state["devices_buffer"].set_text, msg if msg else "No device found.")
 
         run_rivalcfg(["--print-debug"], on_detect)
         run_rivalcfg(["--list"], on_list)
@@ -892,7 +892,7 @@ def create_about_page():
     check_btn.connect("clicked", on_check_mouse)
     btn_box.pack_start(check_btn, False, False, 0)
 
-    fw_btn = Gtk.Button(label="FİRMWARE SÜRÜMÜ")
+    fw_btn = Gtk.Button(label="FIRMWARE VERSION")
     fw_btn.get_style_context().add_class("apply-btn")
 
     def on_firmware(btn):
@@ -900,13 +900,13 @@ def create_about_page():
             if success:
                 GLib.idle_add(set_status, "ok", f"✓ Firmware: {msg}")
             else:
-                GLib.idle_add(set_status, "error", "✗ Fare takılı değil")
+                GLib.idle_add(set_status, "error", "✗ Mouse not connected")
         run_rivalcfg(["--firmware-version"], cb)
 
     fw_btn.connect("clicked", on_firmware)
     btn_box.pack_start(fw_btn, False, False, 0)
 
-    reset_btn = Gtk.Button(label="FABRIKA SIFIRLA")
+    reset_btn = Gtk.Button(label="FACTORY RESET")
     reset_btn.get_style_context().add_class("danger-btn")
 
     def on_factory_reset(btn):
@@ -915,15 +915,15 @@ def create_about_page():
             flags=Gtk.DialogFlags.MODAL,
             type=Gtk.MessageType.WARNING,
             buttons=Gtk.ButtonsType.OK_CANCEL,
-            message_format="Tüm ayarlar fabrika değerlerine döndürülecek. Emin misiniz?"
+            message_format="All settings will be restored to factory defaults. Are you sure?"
         )
-        dialog.set_title("Fabrika Ayarlarına Sıfırla")
+        dialog.set_title("Factory Reset")
         response = dialog.run()
         dialog.destroy()
         if response == Gtk.ResponseType.OK:
             def cb(success, msg):
                 if not success:
-                    GLib.idle_add(set_status, "error", "✗ Fare takılı değil")
+                    GLib.idle_add(set_status, "error", "✗ Mouse not connected")
             run_rivalcfg(["--reset"], cb)
 
     reset_btn.connect("clicked", on_factory_reset)
@@ -935,7 +935,7 @@ def create_about_page():
 
 
 def create_window():
-    """Ana pencereyi ve içeriğini oluşturur."""
+    """Create the main window and its contents."""
     window = Gtk.Window(title="RivalCFG GUI")
     window.set_default_size(1280, 720)
     window.set_resizable(True)
@@ -961,7 +961,7 @@ def create_window():
     vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
     window.add(vbox)
 
-    # Ana yatay bölme
+    # Main horizontal split
     main_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
     vbox.pack_start(main_box, True, True, 0)
 
@@ -983,7 +983,7 @@ def create_window():
         logo_img.set_margin_bottom(8)
         sidebar.pack_start(logo_img, False, False, 0)
 
-    # Marka başlığı
+    # Brand title
     brand = Gtk.Label(label="RivalCFG GUI")
     brand.get_style_context().add_class("page-title")
     brand.set_margin_bottom(20)
@@ -995,20 +995,20 @@ def create_window():
     main_box.pack_start(stack, True, True, 0)
     app_state["stack"] = stack
 
-    # Sayfaları oluştur ve ekle
+    # Create and add pages
     pages = [
         ("dpi", "DPI", create_dpi_page()),
         ("polling", "POLLING", create_polling_page()),
         ("rgb", "RGB", create_rgb_page()),
-        ("buttons", "BUTONLAR", create_buttons_page()),
-        ("devices", "CİHAZLAR", create_devices_page()),
-        ("about", "HAKKINDA", create_about_page()),
+        ("buttons", "BUTTONS", create_buttons_page()),
+        ("devices", "DEVICES", create_devices_page()),
+        ("about", "ABOUT", create_about_page()),
     ]
 
     for name, title, page in pages:
         stack.add_named(page, name)
 
-    # Navigasyon butonları
+    # Navigation buttons
     app_state["nav_buttons"] = []
 
     def on_nav_clicked(button, page_name):
@@ -1037,13 +1037,13 @@ def create_window():
     status_bar.pack_start(dot, False, False, 0)
     app_state["status_dot"] = dot
 
-    status_label = Gtk.Label(label="Başlatılıyor...")
+    status_label = Gtk.Label(label="Starting...")
     status_label.set_halign(Gtk.Align.START)
     status_bar.pack_start(status_label, False, False, 0)
     app_state["status_label"] = status_label
 
     app_state["no_save"] = False
-    no_save_check = Gtk.CheckButton(label="Kaydetme (--no-save)")
+    no_save_check = Gtk.CheckButton(label="Don't save (--no-save)")
     status_bar.pack_end(no_save_check, False, False, 0)
 
     def on_no_save_toggled(button):
@@ -1051,13 +1051,13 @@ def create_window():
 
     no_save_check.connect("toggled", on_no_save_toggled)
 
-    # Başlangıçta fare durumunu kontrol et
+    # Check mouse status on startup
     def startup_check():
         def cb(success, msg):
             if success and "184c" in msg:
-                set_status("ok", "✓ Fare bağlı")
+                set_status("ok", "✓ Mouse connected")
             else:
-                set_status("error", "✗ Fare bulunamadı")
+                set_status("error", "✗ Mouse not found")
         run_rivalcfg(["--print-debug"], cb)
 
     GLib.idle_add(startup_check)

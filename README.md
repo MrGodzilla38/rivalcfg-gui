@@ -57,8 +57,8 @@ sudo ./install.sh --uninstall
 # rivalcfg (Arch via AUR)
 yay -S rivalcfg
 
-# rivalcfg (Debian/Ubuntu)
-sudo apt install rivalcfg
+# rivalcfg (Debian/Ubuntu — via pip)
+pip3 install rivalcfg
 
 # python-gobject & python-cairo (Arch)
 sudo pacman -S python-gobject python-cairo
@@ -139,8 +139,8 @@ sudo ./install.sh --uninstall
 # rivalcfg (Arch - AUR)
 yay -S rivalcfg
 
-# rivalcfg (Debian/Ubuntu)
-sudo apt install rivalcfg
+# rivalcfg (Debian/Ubuntu — pip ile)
+pip3 install rivalcfg
 
 # python-gobject & python-cairo (Arch)
 sudo pacman -S python-gobject python-cairo
