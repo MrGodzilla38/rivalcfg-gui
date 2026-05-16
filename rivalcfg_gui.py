@@ -251,7 +251,7 @@ def set_status(status_type, message):
 def run_rivalcfg(args, on_done=None):
     """Run rivalcfg command in a background thread."""
     def target():
-        GLib.idle_add(set_status, "running", "Processing...")
+        GLib.idle_add(set_status, "running", _("Processing..."))
         try:
             cmd = ["rivalcfg"]
             if app_state.get("no_save"):
@@ -436,7 +436,7 @@ def create_polling_page():
 
     card.pack_start(radio_box, False, False, 0)
 
-    display = Gtk.Label(label="1000 Hz  →  1.0 ms")
+    display = Gtk.Label(label=_("1000 Hz  →  1.0 ms"))
     display.get_style_context().add_class("value-display")
     display.set_halign(Gtk.Align.START)
     card.pack_start(display, False, False, 0)
@@ -980,9 +980,9 @@ def create_about_page():
     def on_check_mouse(btn):
         def on_detect(success, msg):
             if success and "184c" in msg:
-                GLib.idle_add(set_status, "ok", "✓ Mouse connected")
+                GLib.idle_add(set_status, "ok", "✓ " + _("Mouse connected"))
             else:
-                GLib.idle_add(set_status, "error", "✗ Mouse not found")
+                GLib.idle_add(set_status, "error", "✗ " + _("Mouse not found"))
 
         def on_list(success, msg):
             GLib.idle_add(app_state["devices_buffer"].set_text, msg if msg else _("No device found."))
@@ -999,9 +999,9 @@ def create_about_page():
     def on_firmware(btn):
         def cb(success, msg):
             if success:
-                GLib.idle_add(set_status, "ok", f"✓ Firmware: {msg}")
+                GLib.idle_add(set_status, "ok", "✓ " + _("Firmware: %s") % msg)
             else:
-                GLib.idle_add(set_status, "error", "✗ Mouse not connected")
+                GLib.idle_add(set_status, "error", "✗ " + _("Mouse not connected"))
         run_rivalcfg(["--firmware-version"], cb)
 
     fw_btn.connect("clicked", on_firmware)
@@ -1024,7 +1024,7 @@ def create_about_page():
         if response == Gtk.ResponseType.OK:
             def cb(success, msg):
                 if not success:
-                    GLib.idle_add(set_status, "error", "✗ Mouse not connected")
+                    GLib.idle_add(set_status, "error", "✗ " + _("Mouse not connected"))
             run_rivalcfg(["--reset"], cb)
 
     reset_btn.connect("clicked", on_factory_reset)
@@ -1281,6 +1281,8 @@ def rebuild_ui():
     """Rebuild the entire UI with the new language."""
     window = app_state["window"]
     current_page = app_state["stack"].get_visible_child_name()
+    current_status_text = app_state["status_label"].get_text()
+    current_status_classes = app_state["status_dot"].get_style_context().list_classes()
 
     for child in window.get_children():
         window.remove(child)
@@ -1289,30 +1291,35 @@ def rebuild_ui():
     app_state["is_rebuild"] = True
     create_window_content(window)
 
-    app_state["stack"].set_visible_child_name(current_page)
-    for btn in app_state["nav_buttons"]:
-        if btn.get_label() == get_nav_label(current_page):
-            btn.get_style_context().add_class("nav-active")
-            break
-
     window.show_all()
 
     if app_state["settings"]["startup_minimize"]:
         window.iconify()
 
+    def restore_page():
+        app_state["stack"].set_visible_child_name(current_page)
+        nav_labels = {
+            "dpi": "DPI",
+            "polling": _("POLLING"),
+            "rgb": "RGB",
+            "buttons": _("BUTTONS"),
+            "devices": _("DEVICES"),
+            "settings": _("SETTINGS"),
+            "about": _("ABOUT"),
+        }
+        target_label = nav_labels.get(current_page, current_page)
+        for btn in app_state["nav_buttons"]:
+            btn.get_style_context().remove_class("nav-active")
+            if btn.get_label() == target_label:
+                btn.get_style_context().add_class("nav-active")
 
-def get_nav_label(page_name):
-    """Get the translated navigation label for a page."""
-    labels = {
-        "dpi": "DPI",
-        "polling": _("POLLING"),
-        "rgb": "RGB",
-        "buttons": _("BUTTONS"),
-        "devices": _("DEVICES"),
-        "settings": _("SETTINGS"),
-        "about": _("ABOUT"),
-    }
-    return labels.get(page_name, page_name)
+        app_state["status_label"].set_text(current_status_text)
+        for cls in current_status_classes:
+            app_state["status_dot"].get_style_context().add_class(cls)
+
+        return False
+
+    GLib.idle_add(restore_page)
 
 
 def create_window():

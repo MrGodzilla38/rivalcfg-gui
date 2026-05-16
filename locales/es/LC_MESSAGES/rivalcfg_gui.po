@@ -223,3 +223,15 @@ msgstr "Ratón conectado"
 
 msgid "Mouse not found"
 msgstr "Ratón no encontrado"
+
+msgid "Processing..."
+msgstr "Procesando..."
+
+msgid "1000 Hz  →  1.0 ms"
+msgstr "1000 Hz  →  1.0 ms"
+
+msgid "Firmware: %s"
+msgstr "Firmware: %s"
+
+msgid "Mouse not connected"
+msgstr "Ratón no conectado"

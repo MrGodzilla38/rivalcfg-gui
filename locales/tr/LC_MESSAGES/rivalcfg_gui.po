@@ -223,3 +223,15 @@ msgstr "Fare bağlı"
 
 msgid "Mouse not found"
 msgstr "Fare bulunamadı"
+
+msgid "Processing..."
+msgstr "İşleniyor..."
+
+msgid "1000 Hz  →  1.0 ms"
+msgstr "1000 Hz  →  1.0 ms"
+
+msgid "Firmware: %s"
+msgstr "Firmware: %s"
+
+msgid "Mouse not connected"
+msgstr "Fare bağlı değil"

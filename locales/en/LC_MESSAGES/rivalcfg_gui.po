@@ -223,3 +223,15 @@ msgstr "Mouse connected"
 
 msgid "Mouse not found"
 msgstr "Mouse not found"
+
+msgid "Processing..."
+msgstr "Processing..."
+
+msgid "1000 Hz  →  1.0 ms"
+msgstr "1000 Hz  →  1.0 ms"
+
+msgid "Firmware: %s"
+msgstr "Firmware: %s"
+
+msgid "Mouse not connected"
+msgstr "Mouse not connected"
