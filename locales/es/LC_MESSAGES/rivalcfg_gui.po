@@ -1,0 +1,225 @@
+# Spanish translations for rivalcfg-gui.
+msgid ""
+msgstr ""
+"Project-Id-Version: rivalcfg-gui 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-05-16\n"
+"PO-Revision-Date: 2026-05-16\n"
+"Last-Translator: \n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Unknown error"
+msgstr "Error desconocido"
+
+msgid "Error"
+msgstr "Error"
+
+msgid "Done"
+msgstr "Hecho"
+
+msgid "rivalcfg is not installed. Install: pip install rivalcfg"
+msgstr "rivalcfg no está instalado. Instalar: pip install rivalcfg"
+
+msgid "Timeout (10s)"
+msgstr "Tiempo de espera agotado (10s)"
+
+msgid "Unexpected error"
+msgstr "Error inesperado"
+
+msgid "DPI Settings"
+msgstr "Configuración de DPI"
+
+msgid "Preset"
+msgstr "Preajuste"
+
+msgid "APPLY"
+msgstr "APLICAR"
+
+msgid "RESET"
+msgstr "RESTABLECER"
+
+msgid "Polling Rate"
+msgstr "Frecuencia de Sondeo"
+
+msgid "RGB Lighting"
+msgstr "Iluminación RGB"
+
+msgid "COLORS"
+msgstr "COLORES"
+
+msgid "Z1 - Top Strip"
+msgstr "Z1 - Tira Superior"
+
+msgid "Z2 - Middle Strip"
+msgstr "Z2 - Tira Media"
+
+msgid "Z3 - Bottom Strip"
+msgstr "Z3 - Tira Inferior"
+
+msgid "Z4 - Logo"
+msgstr "Z4 - Logo"
+
+msgid "EFFECT"
+msgstr "EFECTO"
+
+msgid "Button Mapping"
+msgstr "Asignación de Botones"
+
+msgid "BUTTON ASSIGNMENTS"
+msgstr "ASIGNACIÓN DE BOTONES"
+
+msgid "Left Click (B1)"
+msgstr "Clic Izquierdo (B1)"
+
+msgid "Right Click (B2)"
+msgstr "Clic Derecho (B2)"
+
+msgid "Middle Click (B3)"
+msgstr "Clic Central (B3)"
+
+msgid "Back (B4)"
+msgstr "Atrás (B4)"
+
+msgid "Forward (B5)"
+msgstr "Adelante (B5)"
+
+msgid "DPI (B6)"
+msgstr "DPI (B6)"
+
+msgid "Scroll ↑"
+msgstr "Desplazar ↑"
+
+msgid "Scroll ↓"
+msgstr "Desplazar ↓"
+
+msgid "Left Click"
+msgstr "Clic Izquierdo"
+
+msgid "Right Click"
+msgstr "Clic Derecho"
+
+msgid "Middle"
+msgstr "Central"
+
+msgid "Back"
+msgstr "Atrás"
+
+msgid "Forward"
+msgstr "Adelante"
+
+msgid "DPI"
+msgstr "DPI"
+
+msgid "rival3.png not found."
+msgstr "rival3.png no encontrado."
+
+msgid "Connected Devices"
+msgstr "Dispositivos Conectados"
+
+msgid "Click refresh to scan..."
+msgstr "Haga clic en actualizar para escanear..."
+
+msgid "REFRESH"
+msgstr "ACTUALIZAR"
+
+msgid "About"
+msgstr "Acerca de"
+
+msgid "Linux GUI configuration tool for SteelSeries mice."
+msgstr "Herramienta de configuración GUI para ratones SteelSeries en Linux."
+
+msgid "Built on top of the rivalcfg library."
+msgstr "Construido sobre la biblioteca rivalcfg."
+
+msgid "Requirements:"
+msgstr "Requisitos:"
+
+msgid "GitHub: "
+msgstr "GitHub: "
+
+msgid "CHECK MOUSE"
+msgstr "COMPROBAR RATÓN"
+
+msgid "FIRMWARE VERSION"
+msgstr "VERSIÓN DE FIRMWARE"
+
+msgid "FACTORY RESET"
+msgstr "RESTABLECER DE FÁBRICA"
+
+msgid "All settings will be restored to factory defaults. Are you sure?"
+msgstr "Todas las configuraciones se restaurarán a los valores predeterminados de fábrica. ¿Está seguro?"
+
+msgid "Factory Reset"
+msgstr "Restablecer de Fábrica"
+
+msgid "No device found."
+msgstr "No se encontró ningún dispositivo."
+
+msgid "Settings"
+msgstr "Configuración"
+
+msgid "BEHAVIOR"
+msgstr "COMPORTAMIENTO"
+
+msgid "Startup Minimize"
+msgstr "Minimizar al Inicio"
+
+msgid "Launch minimized to system tray"
+msgstr "Iniciar minimizado en la bandeja del sistema"
+
+msgid "Auto-Apply on Change"
+msgstr "Aplicar Automáticamente al Cambiar"
+
+msgid "Apply settings immediately when changed"
+msgstr "Aplicar configuraciones inmediatamente al cambiarlas"
+
+msgid "LANGUAGE"
+msgstr "IDIOMA"
+
+msgid "Language"
+msgstr "Idioma"
+
+msgid "Select application display language"
+msgstr "Seleccionar el idioma de visualización de la aplicación"
+
+msgid "APPEARANCE"
+msgstr "APARIENCIA"
+
+msgid "Accent Color"
+msgstr "Color de Acento"
+
+msgid "UI highlight and button color"
+msgstr "Color de resaltado de UI y botones"
+
+msgid "Reset to Default"
+msgstr "Restablecer Predeterminado"
+
+msgid "POLLING"
+msgstr "SONDEO"
+
+msgid "BUTTONS"
+msgstr "BOTONES"
+
+msgid "DEVICES"
+msgstr "DISPOSITIVOS"
+
+msgid "SETTINGS"
+msgstr "CONFIGURACIÓN"
+
+msgid "ABOUT"
+msgstr "ACERCA DE"
+
+msgid "Starting..."
+msgstr "Iniciando..."
+
+msgid "Don't save (--no-save)"
+msgstr "No guardar (--no-save)"
+
+msgid "Mouse connected"
+msgstr "Ratón conectado"
+
+msgid "Mouse not found"
+msgstr "Ratón no encontrado"

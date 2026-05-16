@@ -1,0 +1,225 @@
+# English translations for rivalcfg-gui.
+msgid ""
+msgstr ""
+"Project-Id-Version: rivalcfg-gui 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-05-16\n"
+"PO-Revision-Date: 2026-05-16\n"
+"Last-Translator: \n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Unknown error"
+msgstr "Unknown error"
+
+msgid "Error"
+msgstr "Error"
+
+msgid "Done"
+msgstr "Done"
+
+msgid "rivalcfg is not installed. Install: pip install rivalcfg"
+msgstr "rivalcfg is not installed. Install: pip install rivalcfg"
+
+msgid "Timeout (10s)"
+msgstr "Timeout (10s)"
+
+msgid "Unexpected error"
+msgstr "Unexpected error"
+
+msgid "DPI Settings"
+msgstr "DPI Settings"
+
+msgid "Preset"
+msgstr "Preset"
+
+msgid "APPLY"
+msgstr "APPLY"
+
+msgid "RESET"
+msgstr "RESET"
+
+msgid "Polling Rate"
+msgstr "Polling Rate"
+
+msgid "RGB Lighting"
+msgstr "RGB Lighting"
+
+msgid "COLORS"
+msgstr "COLORS"
+
+msgid "Z1 - Top Strip"
+msgstr "Z1 - Top Strip"
+
+msgid "Z2 - Middle Strip"
+msgstr "Z2 - Middle Strip"
+
+msgid "Z3 - Bottom Strip"
+msgstr "Z3 - Bottom Strip"
+
+msgid "Z4 - Logo"
+msgstr "Z4 - Logo"
+
+msgid "EFFECT"
+msgstr "EFFECT"
+
+msgid "Button Mapping"
+msgstr "Button Mapping"
+
+msgid "BUTTON ASSIGNMENTS"
+msgstr "BUTTON ASSIGNMENTS"
+
+msgid "Left Click (B1)"
+msgstr "Left Click (B1)"
+
+msgid "Right Click (B2)"
+msgstr "Right Click (B2)"
+
+msgid "Middle Click (B3)"
+msgstr "Middle Click (B3)"
+
+msgid "Back (B4)"
+msgstr "Back (B4)"
+
+msgid "Forward (B5)"
+msgstr "Forward (B5)"
+
+msgid "DPI (B6)"
+msgstr "DPI (B6)"
+
+msgid "Scroll ↑"
+msgstr "Scroll ↑"
+
+msgid "Scroll ↓"
+msgstr "Scroll ↓"
+
+msgid "Left Click"
+msgstr "Left Click"
+
+msgid "Right Click"
+msgstr "Right Click"
+
+msgid "Middle"
+msgstr "Middle"
+
+msgid "Back"
+msgstr "Back"
+
+msgid "Forward"
+msgstr "Forward"
+
+msgid "DPI"
+msgstr "DPI"
+
+msgid "rival3.png not found."
+msgstr "rival3.png not found."
+
+msgid "Connected Devices"
+msgstr "Connected Devices"
+
+msgid "Click refresh to scan..."
+msgstr "Click refresh to scan..."
+
+msgid "REFRESH"
+msgstr "REFRESH"
+
+msgid "About"
+msgstr "About"
+
+msgid "Linux GUI configuration tool for SteelSeries mice."
+msgstr "Linux GUI configuration tool for SteelSeries mice."
+
+msgid "Built on top of the rivalcfg library."
+msgstr "Built on top of the rivalcfg library."
+
+msgid "Requirements:"
+msgstr "Requirements:"
+
+msgid "GitHub: "
+msgstr "GitHub: "
+
+msgid "CHECK MOUSE"
+msgstr "CHECK MOUSE"
+
+msgid "FIRMWARE VERSION"
+msgstr "FIRMWARE VERSION"
+
+msgid "FACTORY RESET"
+msgstr "FACTORY RESET"
+
+msgid "All settings will be restored to factory defaults. Are you sure?"
+msgstr "All settings will be restored to factory defaults. Are you sure?"
+
+msgid "Factory Reset"
+msgstr "Factory Reset"
+
+msgid "No device found."
+msgstr "No device found."
+
+msgid "Settings"
+msgstr "Settings"
+
+msgid "BEHAVIOR"
+msgstr "BEHAVIOR"
+
+msgid "Startup Minimize"
+msgstr "Startup Minimize"
+
+msgid "Launch minimized to system tray"
+msgstr "Launch minimized to system tray"
+
+msgid "Auto-Apply on Change"
+msgstr "Auto-Apply on Change"
+
+msgid "Apply settings immediately when changed"
+msgstr "Apply settings immediately when changed"
+
+msgid "LANGUAGE"
+msgstr "LANGUAGE"
+
+msgid "Language"
+msgstr "Language"
+
+msgid "Select application display language"
+msgstr "Select application display language"
+
+msgid "APPEARANCE"
+msgstr "APPEARANCE"
+
+msgid "Accent Color"
+msgstr "Accent Color"
+
+msgid "UI highlight and button color"
+msgstr "UI highlight and button color"
+
+msgid "Reset to Default"
+msgstr "Reset to Default"
+
+msgid "POLLING"
+msgstr "POLLING"
+
+msgid "BUTTONS"
+msgstr "BUTTONS"
+
+msgid "DEVICES"
+msgstr "DEVICES"
+
+msgid "SETTINGS"
+msgstr "SETTINGS"
+
+msgid "ABOUT"
+msgstr "ABOUT"
+
+msgid "Starting..."
+msgstr "Starting..."
+
+msgid "Don't save (--no-save)"
+msgstr "Don't save (--no-save)"
+
+msgid "Mouse connected"
+msgstr "Mouse connected"
+
+msgid "Mouse not found"
+msgstr "Mouse not found"

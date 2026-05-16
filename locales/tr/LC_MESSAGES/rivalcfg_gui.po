@@ -1,0 +1,225 @@
+# Turkish translations for rivalcfg-gui.
+msgid ""
+msgstr ""
+"Project-Id-Version: rivalcfg-gui 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-05-16\n"
+"PO-Revision-Date: 2026-05-16\n"
+"Last-Translator: \n"
+"Language: tr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Unknown error"
+msgstr "Bilinmeyen hata"
+
+msgid "Error"
+msgstr "Hata"
+
+msgid "Done"
+msgstr "Tamamlandı"
+
+msgid "rivalcfg is not installed. Install: pip install rivalcfg"
+msgstr "rivalcfg kurulu değil. Kurulum: pip install rivalcfg"
+
+msgid "Timeout (10s)"
+msgstr "Zaman aşımı (10s)"
+
+msgid "Unexpected error"
+msgstr "Beklenmeyen hata"
+
+msgid "DPI Settings"
+msgstr "DPI Ayarları"
+
+msgid "Preset"
+msgstr "Hazır Ayar"
+
+msgid "APPLY"
+msgstr "UYGULA"
+
+msgid "RESET"
+msgstr "SIFIRLA"
+
+msgid "Polling Rate"
+msgstr "Yenileme Hızı"
+
+msgid "RGB Lighting"
+msgstr "RGB Aydınlatma"
+
+msgid "COLORS"
+msgstr "RENKLER"
+
+msgid "Z1 - Top Strip"
+msgstr "Z1 - Üst Şerit"
+
+msgid "Z2 - Middle Strip"
+msgstr "Z2 - Orta Şerit"
+
+msgid "Z3 - Bottom Strip"
+msgstr "Z3 - Alt Şerit"
+
+msgid "Z4 - Logo"
+msgstr "Z4 - Logo"
+
+msgid "EFFECT"
+msgstr "EFEKT"
+
+msgid "Button Mapping"
+msgstr "Düğme Eşleme"
+
+msgid "BUTTON ASSIGNMENTS"
+msgstr "DÜĞME ATAMALARI"
+
+msgid "Left Click (B1)"
+msgstr "Sol Tıklama (B1)"
+
+msgid "Right Click (B2)"
+msgstr "Sağ Tıklama (B2)"
+
+msgid "Middle Click (B3)"
+msgstr "Orta Tıklama (B3)"
+
+msgid "Back (B4)"
+msgstr "Geri (B4)"
+
+msgid "Forward (B5)"
+msgstr "İleri (B5)"
+
+msgid "DPI (B6)"
+msgstr "DPI (B6)"
+
+msgid "Scroll ↑"
+msgstr "Kaydır ↑"
+
+msgid "Scroll ↓"
+msgstr "Kaydır ↓"
+
+msgid "Left Click"
+msgstr "Sol Tıklama"
+
+msgid "Right Click"
+msgstr "Sağ Tıklama"
+
+msgid "Middle"
+msgstr "Orta"
+
+msgid "Back"
+msgstr "Geri"
+
+msgid "Forward"
+msgstr "İleri"
+
+msgid "DPI"
+msgstr "DPI"
+
+msgid "rival3.png not found."
+msgstr "rival3.png bulunamadı."
+
+msgid "Connected Devices"
+msgstr "Bağlı Cihazlar"
+
+msgid "Click refresh to scan..."
+msgstr "Taramak için yenile butonuna tıklayın..."
+
+msgid "REFRESH"
+msgstr "YENİLE"
+
+msgid "About"
+msgstr "Hakkında"
+
+msgid "Linux GUI configuration tool for SteelSeries mice."
+msgstr "SteelSeries fareleri için Linux GUI yapılandırma aracı."
+
+msgid "Built on top of the rivalcfg library."
+msgstr "rivalcfg kütüphanesi üzerine inşa edilmiştir."
+
+msgid "Requirements:"
+msgstr "Gereksinimler:"
+
+msgid "GitHub: "
+msgstr "GitHub: "
+
+msgid "CHECK MOUSE"
+msgstr "FAREYİ KONTROL ET"
+
+msgid "FIRMWARE VERSION"
+msgstr "FIRMWARE SÜRÜMÜ"
+
+msgid "FACTORY RESET"
+msgstr "FABRİKA AYARLARINA DÖNDÜR"
+
+msgid "All settings will be restored to factory defaults. Are you sure?"
+msgstr "Tüm ayarlar fabrika varsayılanlarına döndürülecek. Emin misiniz?"
+
+msgid "Factory Reset"
+msgstr "Fabrika Ayarlarına Döndür"
+
+msgid "No device found."
+msgstr "Cihaz bulunamadı."
+
+msgid "Settings"
+msgstr "Ayarlar"
+
+msgid "BEHAVIOR"
+msgstr "DAVRANIŞ"
+
+msgid "Startup Minimize"
+msgstr "Başlangıçta Küçült"
+
+msgid "Launch minimized to system tray"
+msgstr "Sistem tepsisine küçültülmüş olarak başlat"
+
+msgid "Auto-Apply on Change"
+msgstr "Değişiklikte Otomatik Uygula"
+
+msgid "Apply settings immediately when changed"
+msgstr "Ayarları değiştirildiğinde hemen uygula"
+
+msgid "LANGUAGE"
+msgstr "DİL"
+
+msgid "Language"
+msgstr "Dil"
+
+msgid "Select application display language"
+msgstr "Uygulama görüntüleme dilini seçin"
+
+msgid "APPEARANCE"
+msgstr "GÖRÜNÜM"
+
+msgid "Accent Color"
+msgstr "Vurgu Rengi"
+
+msgid "UI highlight and button color"
+msgstr "Arayüz vurgu ve düğme rengi"
+
+msgid "Reset to Default"
+msgstr "Varsayılana Sıfırla"
+
+msgid "POLLING"
+msgstr "YENİLENME"
+
+msgid "BUTTONS"
+msgstr "DÜĞMELER"
+
+msgid "DEVICES"
+msgstr "CİHAZLAR"
+
+msgid "SETTINGS"
+msgstr "AYARLAR"
+
+msgid "ABOUT"
+msgstr "HAKKINDA"
+
+msgid "Starting..."
+msgstr "Başlatılıyor..."
+
+msgid "Don't save (--no-save)"
+msgstr "Kaydetme (--no-save)"
+
+msgid "Mouse connected"
+msgstr "Fare bağlı"
+
+msgid "Mouse not found"
+msgstr "Fare bulunamadı"

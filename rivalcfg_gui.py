@@ -7,6 +7,8 @@ import json
 import subprocess
 import threading
 import math
+import gettext
+import locale
 
 try:
     import gi
@@ -29,12 +31,31 @@ app_state = {}
 
 SETTINGS_DIR = os.path.expanduser("~/.config/rivalcfg-gui")
 SETTINGS_FILE = os.path.join(SETTINGS_DIR, "settings.json")
+LOCALE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "locales")
 
 DEFAULT_SETTINGS = {
     "startup_minimize": False,
     "auto_apply": False,
     "accent_color": "#e84545",
+    "language": "en",
 }
+
+def setup_gettext(lang=None):
+    """Setup gettext translation for the given language."""
+    if not lang:
+        lang = locale.getlocale()[0][:2] if locale.getlocale()[0] else "en"
+    try:
+        translation = gettext.translation("rivalcfg_gui", localedir=LOCALE_DIR, languages=[lang], fallback=True)
+    except FileNotFoundError:
+        translation = gettext.NullTranslations()
+    return translation.gettext
+
+def _set_language(lang=None):
+    """Update the global _ function to use the specified language."""
+    global _
+    _ = setup_gettext(lang)
+
+_ = setup_gettext()
 
 
 def load_settings():
@@ -243,28 +264,28 @@ def run_rivalcfg(args, on_done=None):
                 timeout=10
             )
             if result.returncode != 0:
-                err = result.stderr.strip() if result.stderr.strip() else "Unknown error"
-                GLib.idle_add(set_status, "error", f"✗ Error: {err}")
+                err = result.stderr.strip() if result.stderr.strip() else _("Unknown error")
+                GLib.idle_add(set_status, "error", f"✗ {_('Error')}: {err}")
                 if on_done:
                     GLib.idle_add(on_done, False, err)
             else:
                 out = result.stdout.strip()
-                GLib.idle_add(set_status, "ok", "✓ Done")
+                GLib.idle_add(set_status, "ok", "✓ " + _("Done"))
                 if on_done:
                     GLib.idle_add(on_done, True, out)
         except FileNotFoundError:
-            msg = "rivalcfg is not installed. Install: pip install rivalcfg"
-            GLib.idle_add(set_status, "error", f"✗ Error: {msg}")
+            msg = _("rivalcfg is not installed. Install: pip install rivalcfg")
+            GLib.idle_add(set_status, "error", f"✗ {_('Error')}: {msg}")
             if on_done:
                 GLib.idle_add(on_done, False, msg)
         except subprocess.TimeoutExpired:
-            msg = "Timeout (10s)"
-            GLib.idle_add(set_status, "error", f"✗ Error: {msg}")
+            msg = _("Timeout (10s)")
+            GLib.idle_add(set_status, "error", f"✗ {_('Error')}: {msg}")
             if on_done:
                 GLib.idle_add(on_done, False, msg)
         except Exception as e:
-            msg = f"Unexpected error: {e}"
-            GLib.idle_add(set_status, "error", f"✗ Error: {msg}")
+            msg = f"{_('Unexpected error')}: {e}"
+            GLib.idle_add(set_status, "error", f"✗ {_('Error')}: {msg}")
             if on_done:
                 GLib.idle_add(on_done, False, msg)
 
@@ -287,7 +308,7 @@ def create_dpi_page():
     page.set_margin_start(24)
     page.set_margin_end(24)
 
-    title = Gtk.Label(label="DPI Settings")
+    title = Gtk.Label(label=_("DPI Settings"))
     title.get_style_context().add_class("page-title")
     title.set_halign(Gtk.Align.START)
     page.pack_start(title, False, False, 0)
@@ -305,7 +326,7 @@ def create_dpi_page():
         row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
         row.set_margin_bottom(8)
 
-        lbl = Gtk.Label(label=f"Preset {i + 1}")
+        lbl = Gtk.Label(label=f"{_('Preset')} {i + 1}")
         lbl.set_size_request(80, -1)
         lbl.set_halign(Gtk.Align.START)
         row.pack_start(lbl, False, False, 0)
@@ -343,7 +364,7 @@ def create_dpi_page():
     btn_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
     btn_row.set_halign(Gtk.Align.START)
 
-    apply_btn = Gtk.Button(label="APPLY")
+    apply_btn = Gtk.Button(label=_("APPLY"))
     apply_btn.get_style_context().add_class("apply-btn")
 
     def on_apply_dpi(btn):
@@ -354,7 +375,7 @@ def create_dpi_page():
     apply_btn.connect("clicked", on_apply_dpi)
     btn_row.pack_start(apply_btn, False, False, 0)
 
-    reset_btn = Gtk.Button(label="RESET")
+    reset_btn = Gtk.Button(label=_("RESET"))
     reset_btn.get_style_context().add_class("reset-btn")
 
     def on_reset_dpi(btn):
@@ -378,7 +399,7 @@ def create_polling_page():
     page.set_margin_start(24)
     page.set_margin_end(24)
 
-    title = Gtk.Label(label="Polling Rate")
+    title = Gtk.Label(label=_("Polling Rate"))
     title.get_style_context().add_class("page-title")
     title.set_halign(Gtk.Align.START)
     page.pack_start(title, False, False, 0)
@@ -421,7 +442,7 @@ def create_polling_page():
     card.pack_start(display, False, False, 0)
     app_state["polling_display"] = display
 
-    apply_btn = Gtk.Button(label="UYGULA")
+    apply_btn = Gtk.Button(label=_("APPLY"))
     apply_btn.get_style_context().add_class("apply-btn")
     apply_btn.set_halign(Gtk.Align.START)
 
@@ -442,7 +463,7 @@ def create_rgb_page():
     page.set_margin_start(24)
     page.set_margin_end(24)
 
-    title = Gtk.Label(label="RGB Lighting")
+    title = Gtk.Label(label=_("RGB Lighting"))
     title.get_style_context().add_class("page-title")
     title.set_halign(Gtk.Align.START)
     page.pack_start(title, False, False, 0)
@@ -451,7 +472,7 @@ def create_rgb_page():
     card.get_style_context().add_class("card")
     page.pack_start(card, True, True, 0)
 
-    colors_title = Gtk.Label(label="COLORS")
+    colors_title = Gtk.Label(label=_("COLORS"))
     colors_title.get_style_context().add_class("card-title")
     colors_title.set_halign(Gtk.Align.START)
     card.pack_start(colors_title, False, False, 0)
@@ -511,12 +532,12 @@ def create_rgb_page():
         color_btn.connect("color-set", on_color_set)
         return row
 
-    card.pack_start(make_color_row("Z1 - Top Strip", "ff0000", "z1_hex"), False, False, 0)
-    card.pack_start(make_color_row("Z2 - Middle Strip", "00ff00", "z2_hex"), False, False, 0)
-    card.pack_start(make_color_row("Z3 - Bottom Strip", "0000ff", "z3_hex"), False, False, 0)
-    card.pack_start(make_color_row("Z4 - Logo", "aa00ff", "z4_hex"), False, False, 0)
+    card.pack_start(make_color_row(_("Z1 - Top Strip"), "ff0000", "z1_hex"), False, False, 0)
+    card.pack_start(make_color_row(_("Z2 - Middle Strip"), "00ff00", "z2_hex"), False, False, 0)
+    card.pack_start(make_color_row(_("Z3 - Bottom Strip"), "0000ff", "z3_hex"), False, False, 0)
+    card.pack_start(make_color_row(_("Z4 - Logo"), "aa00ff", "z4_hex"), False, False, 0)
 
-    effect_title = Gtk.Label(label="EFFECT")
+    effect_title = Gtk.Label(label=_("EFFECT"))
     effect_title.get_style_context().add_class("card-title")
     effect_title.set_halign(Gtk.Align.START)
     effect_title.set_margin_top(12)
@@ -556,7 +577,7 @@ def create_rgb_page():
 
     card.pack_start(eff_box, False, False, 0)
 
-    apply_btn = Gtk.Button(label="UYGULA")
+    apply_btn = Gtk.Button(label=_("APPLY"))
     apply_btn.get_style_context().add_class("apply-btn")
     apply_btn.set_halign(Gtk.Align.START)
     apply_btn.set_margin_top(8)
@@ -604,7 +625,7 @@ def create_buttons_page():
     page.set_margin_start(24)
     page.set_margin_end(24)
 
-    title = Gtk.Label(label="Button Mapping")
+    title = Gtk.Label(label=_("Button Mapping"))
     title.get_style_context().add_class("page-title")
     title.set_halign(Gtk.Align.START)
     page.pack_start(title, False, False, 0)
@@ -618,7 +639,7 @@ def create_buttons_page():
     left_card.get_style_context().add_class("card")
     content.pack_start(left_card, False, False, 0)
 
-    card_title = Gtk.Label(label="BUTTON ASSIGNMENTS")
+    card_title = Gtk.Label(label=_("BUTTON ASSIGNMENTS"))
     card_title.get_style_context().add_class("card-title")
     card_title.set_halign(Gtk.Align.START)
     left_card.pack_start(card_title, False, False, 0)
@@ -643,14 +664,14 @@ def create_buttons_page():
     app_state["button_combos"] = {}
 
     labels = {
-        "button1": "Left Click (B1)",
-        "button2": "Right Click (B2)",
-        "button3": "Middle Click (B3)",
-        "button4": "Back (B4)",
-        "button5": "Forward (B5)",
-        "button6": "DPI (B6)",
-        "scrollup": "Scroll ↑",
-        "scrolldown": "Scroll ↓",
+        "button1": _("Left Click (B1)"),
+        "button2": _("Right Click (B2)"),
+        "button3": _("Middle Click (B3)"),
+        "button4": _("Back (B4)"),
+        "button5": _("Forward (B5)"),
+        "button6": _("DPI (B6)"),
+        "scrollup": _("Scroll ↑"),
+        "scrolldown": _("Scroll ↓"),
     }
 
     for btn_name in ["button1", "button2", "button3", "button4", "button5", "button6", "scrollup", "scrolldown"]:
@@ -692,7 +713,7 @@ def create_buttons_page():
     btn_row.set_halign(Gtk.Align.START)
     btn_row.set_margin_top(8)
 
-    apply_btn = Gtk.Button(label="UYGULA")
+    apply_btn = Gtk.Button(label=_("APPLY"))
     apply_btn.get_style_context().add_class("apply-btn")
 
     def on_apply_buttons(btn):
@@ -709,7 +730,7 @@ def create_buttons_page():
     apply_btn.connect("clicked", on_apply_buttons)
     btn_row.pack_start(apply_btn, False, False, 0)
 
-    reset_btn = Gtk.Button(label="RESET")
+    reset_btn = Gtk.Button(label=_("RESET"))
     reset_btn.get_style_context().add_class("reset-btn")
 
     def on_reset_buttons(btn):
@@ -751,7 +772,7 @@ def create_buttons_page():
         image_widget.set_valign(Gtk.Align.CENTER)
         overlay.add(image_widget)
     else:
-        fallback = Gtk.Label(label="rival3.png not found.")
+        fallback = Gtk.Label(label=_("rival3.png not found."))
         overlay.add(fallback)
 
     # Label overlay - DrawingArea for lines and labels only
@@ -788,12 +809,12 @@ def create_buttons_page():
         }
 
         btn_display_names = {
-            "button1": "Left Click",
-            "button2": "Right Click",
-            "button3": "Middle",
-            "button4": "Back",
-            "button5": "Forward",
-            "button6": "DPI",
+            "button1": _("Left Click"),
+            "button2": _("Right Click"),
+            "button3": _("Middle"),
+            "button4": _("Back"),
+            "button5": _("Forward"),
+            "button6": _("DPI"),
         }
 
         # Labels aligned to the right
@@ -863,7 +884,7 @@ def create_devices_page():
     page.set_margin_start(24)
     page.set_margin_end(24)
 
-    title = Gtk.Label(label="Connected Devices")
+    title = Gtk.Label(label=_("Connected Devices"))
     title.get_style_context().add_class("page-title")
     title.set_halign(Gtk.Align.START)
     page.pack_start(title, False, False, 0)
@@ -879,7 +900,7 @@ def create_devices_page():
     textview.override_background_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0, 0, 0, 0))
     textview.override_color(Gtk.StateFlags.NORMAL, Gdk.RGBA(0.8, 0.8, 0.9, 1))
     app_state["devices_buffer"] = textview.get_buffer()
-    app_state["devices_buffer"].set_text("Click refresh to scan...")
+    app_state["devices_buffer"].set_text(_("Click refresh to scan..."))
     scrolled = Gtk.ScrolledWindow()
     scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
     scrolled.set_min_content_height(200)
@@ -887,7 +908,7 @@ def create_devices_page():
     scrolled.add(textview)
     card.pack_start(scrolled, True, True, 0)
 
-    refresh_btn = Gtk.Button(label="REFRESH")
+    refresh_btn = Gtk.Button(label=_("REFRESH"))
     refresh_btn.get_style_context().add_class("apply-btn")
     refresh_btn.set_halign(Gtk.Align.START)
     refresh_btn.set_margin_top(8)
@@ -911,7 +932,7 @@ def create_about_page():
     page.set_margin_start(24)
     page.set_margin_end(24)
 
-    title = Gtk.Label(label="About")
+    title = Gtk.Label(label=_("About"))
     title.get_style_context().add_class("page-title")
     title.set_halign(Gtk.Align.START)
     page.pack_start(title, False, False, 0)
@@ -921,9 +942,9 @@ def create_about_page():
     page.pack_start(card, True, True, 0)
 
     text = (
-        "Linux GUI configuration tool for SteelSeries mice.\n"
-        "Built on top of the rivalcfg library.\n\n"
-        "Requirements:\n"
+        _("Linux GUI configuration tool for SteelSeries mice.") + "\n" +
+        _("Built on top of the rivalcfg library.") + "\n\n" +
+        _("Requirements:") + "\n"
         "  pip install rivalcfg\n"
         "  pacman -S python-gobject python-cairo"
     )
@@ -936,7 +957,7 @@ def create_about_page():
     github_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
     github_box.set_halign(Gtk.Align.START)
 
-    github_prefix = Gtk.Label(label="GitHub: ")
+    github_prefix = Gtk.Label(label=_("GitHub: "))
     github_prefix.set_halign(Gtk.Align.START)
     github_box.pack_start(github_prefix, False, False, 0)
 
@@ -953,7 +974,7 @@ def create_about_page():
     btn_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
     btn_box.set_halign(Gtk.Align.START)
 
-    check_btn = Gtk.Button(label="CHECK MOUSE")
+    check_btn = Gtk.Button(label=_("CHECK MOUSE"))
     check_btn.get_style_context().add_class("apply-btn")
 
     def on_check_mouse(btn):
@@ -964,7 +985,7 @@ def create_about_page():
                 GLib.idle_add(set_status, "error", "✗ Mouse not found")
 
         def on_list(success, msg):
-            GLib.idle_add(app_state["devices_buffer"].set_text, msg if msg else "No device found.")
+            GLib.idle_add(app_state["devices_buffer"].set_text, msg if msg else _("No device found."))
 
         run_rivalcfg(["--print-debug"], on_detect)
         run_rivalcfg(["--list"], on_list)
@@ -972,7 +993,7 @@ def create_about_page():
     check_btn.connect("clicked", on_check_mouse)
     btn_box.pack_start(check_btn, False, False, 0)
 
-    fw_btn = Gtk.Button(label="FIRMWARE VERSION")
+    fw_btn = Gtk.Button(label=_("FIRMWARE VERSION"))
     fw_btn.get_style_context().add_class("apply-btn")
 
     def on_firmware(btn):
@@ -986,7 +1007,7 @@ def create_about_page():
     fw_btn.connect("clicked", on_firmware)
     btn_box.pack_start(fw_btn, False, False, 0)
 
-    reset_btn = Gtk.Button(label="FACTORY RESET")
+    reset_btn = Gtk.Button(label=_("FACTORY RESET"))
     reset_btn.get_style_context().add_class("danger-btn")
 
     def on_factory_reset(btn):
@@ -995,9 +1016,9 @@ def create_about_page():
             flags=Gtk.DialogFlags.MODAL,
             type=Gtk.MessageType.WARNING,
             buttons=Gtk.ButtonsType.OK_CANCEL,
-            message_format="All settings will be restored to factory defaults. Are you sure?"
+            message_format=_("All settings will be restored to factory defaults. Are you sure?")
         )
-        dialog.set_title("Factory Reset")
+        dialog.set_title(_("Factory Reset"))
         response = dialog.run()
         dialog.destroy()
         if response == Gtk.ResponseType.OK:
@@ -1022,7 +1043,7 @@ def create_settings_page():
     page.set_margin_start(24)
     page.set_margin_end(24)
 
-    title = Gtk.Label(label="Settings")
+    title = Gtk.Label(label=_("Settings"))
     title.get_style_context().add_class("page-title")
     title.set_halign(Gtk.Align.START)
     page.pack_start(title, False, False, 0)
@@ -1032,7 +1053,7 @@ def create_settings_page():
     behavior_card.get_style_context().add_class("card")
     page.pack_start(behavior_card, False, False, 0)
 
-    behavior_title = Gtk.Label(label="BEHAVIOR")
+    behavior_title = Gtk.Label(label=_("BEHAVIOR"))
     behavior_title.get_style_context().add_class("card-title")
     behavior_title.set_halign(Gtk.Align.START)
     behavior_card.pack_start(behavior_title, False, False, 0)
@@ -1043,10 +1064,10 @@ def create_settings_page():
 
     sm_text = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
     sm_text.set_hexpand(True)
-    sm_label = Gtk.Label(label="Startup Minimize")
+    sm_label = Gtk.Label(label=_("Startup Minimize"))
     sm_label.get_style_context().add_class("setting-label")
     sm_label.set_halign(Gtk.Align.START)
-    sm_desc = Gtk.Label(label="Launch minimized to system tray")
+    sm_desc = Gtk.Label(label=_("Launch minimized to system tray"))
     sm_desc.get_style_context().add_class("setting-desc")
     sm_desc.set_halign(Gtk.Align.START)
     sm_text.pack_start(sm_label, False, False, 0)
@@ -1066,10 +1087,10 @@ def create_settings_page():
 
     aa_text = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
     aa_text.set_hexpand(True)
-    aa_label = Gtk.Label(label="Auto-Apply on Change")
+    aa_label = Gtk.Label(label=_("Auto-Apply on Change"))
     aa_label.get_style_context().add_class("setting-label")
     aa_label.set_halign(Gtk.Align.START)
-    aa_desc = Gtk.Label(label="Apply settings immediately when changed")
+    aa_desc = Gtk.Label(label=_("Apply settings immediately when changed"))
     aa_desc.get_style_context().add_class("setting-desc")
     aa_desc.set_halign(Gtk.Align.START)
     aa_text.pack_start(aa_label, False, False, 0)
@@ -1083,12 +1104,59 @@ def create_settings_page():
     aa_switch.connect("notify::active", lambda *a: (app_state["settings"].__setitem__("auto_apply", aa_switch.get_active()), save_settings()))
     behavior_card.pack_start(aa_row, False, False, 0)
 
+    # --- LANGUAGE CARD ---
+    language_card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
+    language_card.get_style_context().add_class("card")
+    page.pack_start(language_card, False, False, 0)
+
+    language_title = Gtk.Label(label=_("LANGUAGE"))
+    language_title.get_style_context().add_class("card-title")
+    language_title.set_halign(Gtk.Align.START)
+    language_card.pack_start(language_title, False, False, 0)
+
+    lang_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=16)
+    lang_row.get_style_context().add_class("setting-row")
+
+    lang_text = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
+    lang_text.set_hexpand(True)
+    lang_label = Gtk.Label(label=_("Language"))
+    lang_label.get_style_context().add_class("setting-label")
+    lang_label.set_halign(Gtk.Align.START)
+    lang_desc = Gtk.Label(label=_("Select application display language"))
+    lang_desc.get_style_context().add_class("setting-desc")
+    lang_desc.set_halign(Gtk.Align.START)
+    lang_text.pack_start(lang_label, False, False, 0)
+    lang_text.pack_start(lang_desc, False, False, 0)
+    lang_row.pack_start(lang_text, True, True, 0)
+
+    lang_combo = Gtk.ComboBoxText()
+    languages = [("en", "English"), ("es", "Español"), ("tr", "Türkçe")]
+    current_lang = app_state["settings"].get("language", "en")
+    for code, name in languages:
+        lang_combo.append_text(name)
+        if code == current_lang:
+            lang_combo.set_active(languages.index((code, name)))
+    if lang_combo.get_active() == -1:
+        lang_combo.set_active(0)
+    lang_row.pack_start(lang_combo, False, False, 0)
+
+    def on_lang_changed(combo):
+        selected_idx = combo.get_active()
+        lang_code = languages[selected_idx][0]
+        app_state["settings"]["language"] = lang_code
+        save_settings()
+        _set_language(lang_code)
+        rebuild_ui()
+
+    lang_combo.connect("changed", on_lang_changed)
+    language_card.pack_start(lang_row, False, False, 0)
+
     # --- APPEARANCE CARD ---
     appearance_card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
     appearance_card.get_style_context().add_class("card")
     page.pack_start(appearance_card, False, False, 0)
 
-    appearance_title = Gtk.Label(label="APPEARANCE")
+    appearance_title = Gtk.Label(label=_("APPEARANCE"))
     appearance_title.get_style_context().add_class("card-title")
     appearance_title.set_halign(Gtk.Align.START)
     appearance_card.pack_start(appearance_title, False, False, 0)
@@ -1099,10 +1167,10 @@ def create_settings_page():
 
     ac_text = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
     ac_text.set_hexpand(True)
-    ac_label = Gtk.Label(label="Accent Color")
+    ac_label = Gtk.Label(label=_("Accent Color"))
     ac_label.get_style_context().add_class("setting-label")
     ac_label.set_halign(Gtk.Align.START)
-    ac_desc = Gtk.Label(label="UI highlight and button color")
+    ac_desc = Gtk.Label(label=_("UI highlight and button color"))
     ac_desc.get_style_context().add_class("setting-desc")
     ac_desc.set_halign(Gtk.Align.START)
     ac_text.pack_start(ac_label, False, False, 0)
@@ -1149,7 +1217,7 @@ def create_settings_page():
     appearance_card.pack_start(ac_row, False, False, 0)
 
     # Reset to Default button
-    reset_accent_btn = Gtk.Button(label="Reset to Default")
+    reset_accent_btn = Gtk.Button(label=_("Reset to Default"))
     reset_accent_btn.get_style_context().add_class("reset-btn")
     reset_accent_btn.set_halign(Gtk.Align.START)
     reset_accent_btn.set_margin_top(8)
@@ -1209,16 +1277,49 @@ def update_accent_color(accent):
     context.add_provider_for_screen(screen, provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION + 1)
 
 
+def rebuild_ui():
+    """Rebuild the entire UI with the new language."""
+    window = app_state["window"]
+    current_page = app_state["stack"].get_visible_child_name()
+
+    for child in window.get_children():
+        window.remove(child)
+
+    app_state["nav_buttons"] = []
+    create_window_content(window)
+
+    app_state["stack"].set_visible_child_name(current_page)
+    for btn in app_state["nav_buttons"]:
+        if btn.get_label() == get_nav_label(current_page):
+            btn.get_style_context().add_class("nav-active")
+            break
+
+
+def get_nav_label(page_name):
+    """Get the translated navigation label for a page."""
+    labels = {
+        "dpi": "DPI",
+        "polling": _("POLLING"),
+        "rgb": "RGB",
+        "buttons": _("BUTTONS"),
+        "devices": _("DEVICES"),
+        "settings": _("SETTINGS"),
+        "about": _("ABOUT"),
+    }
+    return labels.get(page_name, page_name)
+
+
 def create_window():
     """Create the main window and its contents."""
     app_state["settings"] = load_settings()
+    lang = app_state["settings"].get("language", None)
+    _set_language(lang)
 
     window = Gtk.Window(title="RivalCFG GUI")
     window.set_default_size(1280, 720)
     window.set_resizable(True)
     window.connect("destroy", Gtk.main_quit)
 
-    # Pencere simgesi
     icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logo.png")
     if os.path.exists(icon_path):
         icon_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(icon_path, 128, 128, True)
@@ -1226,7 +1327,6 @@ def create_window():
 
     app_state["window"] = window
 
-    # CSS uygula
     css_provider = Gtk.CssProvider()
     css_provider.load_from_data(CSS.encode('utf-8'))
     Gtk.StyleContext.add_provider_for_screen(
@@ -1235,17 +1335,24 @@ def create_window():
         Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
     )
 
-    # Apply accent color
     update_accent_color(app_state["settings"]["accent_color"])
 
+    create_window_content(window)
+
+    window.show_all()
+
+    if app_state["settings"]["startup_minimize"]:
+        window.iconify()
+
+
+def create_window_content(window):
+    """Create the main window content. Separated for rebuild_ui."""
     vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
     window.add(vbox)
 
-    # Main horizontal split
     main_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
     vbox.pack_start(main_box, True, True, 0)
 
-    # Sol sidebar
     sidebar = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
     sidebar.set_size_request(180, -1)
     sidebar.get_style_context().add_class("sidebar")
@@ -1255,7 +1362,6 @@ def create_window():
     sidebar.set_margin_end(16)
     main_box.pack_start(sidebar, False, False, 0)
 
-    # Sidebar logo
     icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logo.png")
     if os.path.exists(icon_path):
         logo_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(icon_path, 100, 100, True)
@@ -1263,33 +1369,29 @@ def create_window():
         logo_img.set_margin_bottom(8)
         sidebar.pack_start(logo_img, False, False, 0)
 
-    # Brand title
     brand = Gtk.Label(label="RivalCFG GUI")
     brand.get_style_context().add_class("page-title")
     brand.set_margin_bottom(20)
     sidebar.pack_start(brand, False, False, 0)
 
-    # Stack
     stack = Gtk.Stack()
     stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
     main_box.pack_start(stack, True, True, 0)
     app_state["stack"] = stack
 
-    # Create and add pages
     pages = [
         ("dpi", "DPI", create_dpi_page()),
-        ("polling", "POLLING", create_polling_page()),
+        ("polling", _("POLLING"), create_polling_page()),
         ("rgb", "RGB", create_rgb_page()),
-        ("buttons", "BUTTONS", create_buttons_page()),
-        ("devices", "DEVICES", create_devices_page()),
-        ("settings", "SETTINGS", create_settings_page()),
-        ("about", "ABOUT", create_about_page()),
+        ("buttons", _("BUTTONS"), create_buttons_page()),
+        ("devices", _("DEVICES"), create_devices_page()),
+        ("settings", _("SETTINGS"), create_settings_page()),
+        ("about", _("ABOUT"), create_about_page()),
     ]
 
     for name, title, page in pages:
         stack.add_named(page, name)
 
-    # Navigation buttons
     app_state["nav_buttons"] = []
 
     def on_nav_clicked(button, page_name):
@@ -1298,7 +1400,7 @@ def create_window():
         button.get_style_context().add_class("nav-active")
         stack.set_visible_child_name(page_name)
 
-    for i, (name, title, _) in enumerate(pages):
+    for i, (name, title, __page) in enumerate(pages):
         btn = Gtk.Button(label=title)
         btn.get_style_context().add_class("nav-btn")
         if i == 0:
@@ -1307,7 +1409,6 @@ def create_window():
         sidebar.pack_start(btn, False, False, 0)
         app_state["nav_buttons"].append(btn)
 
-    # Status bar
     status_bar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
     status_bar.set_size_request(-1, 32)
     status_bar.get_style_context().add_class("status-bar")
@@ -1318,13 +1419,13 @@ def create_window():
     status_bar.pack_start(dot, False, False, 0)
     app_state["status_dot"] = dot
 
-    status_label = Gtk.Label(label="Starting...")
+    status_label = Gtk.Label(label=_("Starting..."))
     status_label.set_halign(Gtk.Align.START)
     status_bar.pack_start(status_label, False, False, 0)
     app_state["status_label"] = status_label
 
     app_state["no_save"] = False
-    no_save_check = Gtk.CheckButton(label="Don't save (--no-save)")
+    no_save_check = Gtk.CheckButton(label=_("Don't save (--no-save)"))
     status_bar.pack_end(no_save_check, False, False, 0)
 
     def on_no_save_toggled(button):
@@ -1332,21 +1433,15 @@ def create_window():
 
     no_save_check.connect("toggled", on_no_save_toggled)
 
-    # Check mouse status on startup
     def startup_check():
         def cb(success, msg):
             if success and "184c" in msg:
-                set_status("ok", "✓ Mouse connected")
+                set_status("ok", "✓ " + _("Mouse connected"))
             else:
-                set_status("error", "✗ Mouse not found")
+                set_status("error", "✗ " + _("Mouse not found"))
         run_rivalcfg(["--print-debug"], cb)
 
     GLib.idle_add(startup_check)
-
-    window.show_all()
-
-    if app_state["settings"]["startup_minimize"]:
-        window.iconify()
 
 
 def main():
