@@ -1,0 +1,17 @@
+Origin: RivalCFG GUI APT Repository
+Label: RivalCFG GUI
+Suite: stable
+Codename: stable
+Architectures: all
+Components: main
+Description: APT repository for RivalCFG GUI
+Date: Sat, 16 May 2026 08:26:18 +0000
+MD5Sum:
+ 80d4c156029379d785acb11d95c03a6e 792 Packages
+ 730c2c1b1d9b6b6abec03f93880e5a56 541 Packages.gz
+SHA1:
+ 99595d7e451926a412b5868ad13fe944418cce56 792 Packages
+ 2697ffcd83a8faa5a81c362604fd2cd3eff685cd 541 Packages.gz
+SHA256:
+ 686e7d8c18ec288f5c4eda3813045fe8511e438ac6b7f05d3d7e7ff55e30ed77 792 Packages
+ ed7133047007419169c2f5dc23882dc168a71df1c4953ac02c915f8f6cc5c363 541 Packages.gz

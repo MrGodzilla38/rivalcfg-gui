@@ -1,0 +1,20 @@
+Package: rivalcfg-gui
+Version: 1.0.0
+Section: x11
+Priority: optional
+Architecture: all
+Depends: python3, python3-gi, python3-cairo
+Suggests: rivalcfg
+Maintainer: MrGodzilla38 <oyunustasigodzilla@gmail.com>
+Homepage: https://github.com/MrGodzilla38/rivalcfg-gui
+Description: GTK3 GUI configuration tool for SteelSeries mice (via rivalcfg)
+ RivalCFG GUI is a Linux desktop application for configuring
+ SteelSeries mouse settings including DPI, polling rate,
+ RGB lighting, and button mappings through a modern GTK3 interface.
+ Works with all devices supported by the rivalcfg CLI tool.
+Filename: rivalcfg-gui_1.0.0.deb
+Size: 676536
+MD5sum: d6bba3a225bba70d8b8decbb11ce47e3
+SHA1: d230aea0117edff3b66d3d28e5abb97bb5509b13
+SHA256: 78ef4ca55cedb7c26ddf52fb1346789a62785209c9b7c9a00c07564ff712ce3a
+
