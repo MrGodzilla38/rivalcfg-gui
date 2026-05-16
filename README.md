@@ -49,6 +49,27 @@ sudo ./install.sh
 sudo ./install.sh --uninstall
 ```
 
+### APT Repository (Debian/Ubuntu)
+
+Add the repository and install via `apt` for automatic updates:
+
+```bash
+echo "deb [trusted=yes] https://MrGodzilla38.github.io/rivalcfg-gui/ ./" | sudo tee /etc/apt/sources.list.d/rivalcfg-gui.list
+sudo apt update
+sudo apt install rivalcfg-gui
+```
+
+**Upgrade:**
+```bash
+sudo apt update && sudo apt upgrade
+```
+
+**Uninstall:**
+```bash
+sudo apt remove rivalcfg-gui
+sudo rm /etc/apt/sources.list.d/rivalcfg-gui.list
+```
+
 ### Manual
 
 ```bash
@@ -129,6 +150,27 @@ sudo ./install.sh
 **Kaldırma:**
 ```bash
 sudo ./install.sh --uninstall
+```
+
+### APT Deposu (Debian/Ubuntu)
+
+Depoyu ekleyin ve `apt` ile kurun, otomatik güncellemeler alın:
+
+```bash
+echo "deb [trusted=yes] https://MrGodzilla38.github.io/rivalcfg-gui/ ./" | sudo tee /etc/apt/sources.list.d/rivalcfg-gui.list
+sudo apt update
+sudo apt install rivalcfg-gui
+```
+
+**Güncelleme:**
+```bash
+sudo apt update && sudo apt upgrade
+```
+
+**Kaldırma:**
+```bash
+sudo apt remove rivalcfg-gui
+sudo rm /etc/apt/sources.list.d/rivalcfg-gui.list
 ```
 
 ### Manuel Kurulum
