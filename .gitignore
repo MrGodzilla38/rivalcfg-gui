@@ -1,6 +1,3 @@
-# Packaging (edit and commit when ready)
-dist/
-
 # Python
 __pycache__/
 *.py[cod]

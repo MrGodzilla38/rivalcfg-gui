@@ -1,0 +1,28 @@
+#!/usr/bin/make -f
+%:
+	dh $@
+
+override_dh_auto_build:
+
+override_dh_auto_install:
+	install -d debian/rivalcfg-gui/usr/share/rivalcfg-gui
+	install -Dm755 rivalcfg_gui.py debian/rivalcfg-gui/usr/share/rivalcfg-gui/rivalcfg_gui.py
+	install -Dm644 logo.png debian/rivalcfg-gui/usr/share/rivalcfg-gui/logo.png
+	install -Dm644 rival3.png debian/rivalcfg-gui/usr/share/rivalcfg-gui/rival3.png
+
+	install -d debian/rivalcfg-gui/usr/bin
+	ln -s /usr/share/rivalcfg-gui/rivalcfg_gui.py debian/rivalcfg-gui/usr/bin/rivalcfg-gui
+
+	install -d debian/rivalcfg-gui/usr/share/applications
+	cat > debian/rivalcfg-gui/usr/share/applications/rivalcfg-gui.desktop <<EOF
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=RivalCFG GUI
+Comment=SteelSeries mouse configuration tool
+Exec=/usr/share/rivalcfg-gui/rivalcfg_gui.py
+Icon=/usr/share/rivalcfg-gui/logo.png
+Terminal=false
+Categories=Utility;Settings;
+StartupWMClass=rivalcfg_gui.py
+EOF
