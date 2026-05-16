@@ -235,3 +235,6 @@ msgstr "Firmware: %s"
 
 msgid "Mouse not connected"
 msgstr "Mouse not connected"
+
+msgid "Mouse Settings"
+msgstr "Mouse Settings"

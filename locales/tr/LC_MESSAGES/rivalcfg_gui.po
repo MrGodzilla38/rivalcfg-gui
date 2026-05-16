@@ -235,3 +235,6 @@ msgstr "Firmware: %s"
 
 msgid "Mouse not connected"
 msgstr "Fare bağlı değil"
+
+msgid "Mouse Settings"
+msgstr "Fare Ayarları"

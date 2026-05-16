@@ -971,67 +971,6 @@ def create_about_page():
 
     card.pack_start(github_box, False, False, 0)
 
-    btn_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
-    btn_box.set_halign(Gtk.Align.START)
-
-    check_btn = Gtk.Button(label=_("CHECK MOUSE"))
-    check_btn.get_style_context().add_class("apply-btn")
-
-    def on_check_mouse(btn):
-        def on_detect(success, msg):
-            if success and "184c" in msg:
-                GLib.idle_add(set_status, "ok", "✓ " + _("Mouse connected"))
-            else:
-                GLib.idle_add(set_status, "error", "✗ " + _("Mouse not found"))
-
-        def on_list(success, msg):
-            GLib.idle_add(app_state["devices_buffer"].set_text, msg if msg else _("No device found."))
-
-        run_rivalcfg(["--print-debug"], on_detect)
-        run_rivalcfg(["--list"], on_list)
-
-    check_btn.connect("clicked", on_check_mouse)
-    btn_box.pack_start(check_btn, False, False, 0)
-
-    fw_btn = Gtk.Button(label=_("FIRMWARE VERSION"))
-    fw_btn.get_style_context().add_class("apply-btn")
-
-    def on_firmware(btn):
-        def cb(success, msg):
-            if success:
-                GLib.idle_add(set_status, "ok", "✓ " + _("Firmware: %s") % msg)
-            else:
-                GLib.idle_add(set_status, "error", "✗ " + _("Mouse not connected"))
-        run_rivalcfg(["--firmware-version"], cb)
-
-    fw_btn.connect("clicked", on_firmware)
-    btn_box.pack_start(fw_btn, False, False, 0)
-
-    reset_btn = Gtk.Button(label=_("FACTORY RESET"))
-    reset_btn.get_style_context().add_class("danger-btn")
-
-    def on_factory_reset(btn):
-        dialog = Gtk.MessageDialog(
-            parent=app_state.get("window"),
-            flags=Gtk.DialogFlags.MODAL,
-            type=Gtk.MessageType.WARNING,
-            buttons=Gtk.ButtonsType.OK_CANCEL,
-            message_format=_("All settings will be restored to factory defaults. Are you sure?")
-        )
-        dialog.set_title(_("Factory Reset"))
-        response = dialog.run()
-        dialog.destroy()
-        if response == Gtk.ResponseType.OK:
-            def cb(success, msg):
-                if not success:
-                    GLib.idle_add(set_status, "error", "✗ " + _("Mouse not connected"))
-            run_rivalcfg(["--reset"], cb)
-
-    reset_btn.connect("clicked", on_factory_reset)
-    btn_box.pack_start(reset_btn, False, False, 0)
-
-    card.pack_start(btn_box, False, False, 0)
-
     return page
 
 
@@ -1235,6 +1174,77 @@ def create_settings_page():
 
     reset_accent_btn.connect("clicked", on_reset_accent)
     appearance_card.pack_start(reset_accent_btn, False, False, 0)
+
+    # --- DIAGNOSTICS CARD ---
+    diagnostics_card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
+    diagnostics_card.get_style_context().add_class("card")
+    page.pack_start(diagnostics_card, False, False, 0)
+
+    diagnostics_title = Gtk.Label(label=_("Mouse Settings"))
+    diagnostics_title.get_style_context().add_class("card-title")
+    diagnostics_title.set_halign(Gtk.Align.START)
+    diagnostics_card.pack_start(diagnostics_title, False, False, 0)
+
+    diag_btn_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+    diag_btn_box.set_halign(Gtk.Align.START)
+
+    check_btn = Gtk.Button(label=_("CHECK MOUSE"))
+    check_btn.get_style_context().add_class("apply-btn")
+
+    def on_check_mouse(btn):
+        def on_detect(success, msg):
+            if success and "184c" in msg:
+                GLib.idle_add(set_status, "ok", "✓ " + _("Mouse connected"))
+            else:
+                GLib.idle_add(set_status, "error", "✗ " + _("Mouse not found"))
+
+        def on_list(success, msg):
+            GLib.idle_add(app_state["devices_buffer"].set_text, msg if msg else _("No device found."))
+
+        run_rivalcfg(["--print-debug"], on_detect)
+        run_rivalcfg(["--list"], on_list)
+
+    check_btn.connect("clicked", on_check_mouse)
+    diag_btn_box.pack_start(check_btn, False, False, 0)
+
+    fw_btn = Gtk.Button(label=_("FIRMWARE VERSION"))
+    fw_btn.get_style_context().add_class("apply-btn")
+
+    def on_firmware(btn):
+        def cb(success, msg):
+            if success:
+                GLib.idle_add(set_status, "ok", "✓ " + _("Firmware: %s") % msg)
+            else:
+                GLib.idle_add(set_status, "error", "✗ " + _("Mouse not connected"))
+        run_rivalcfg(["--firmware-version"], cb)
+
+    fw_btn.connect("clicked", on_firmware)
+    diag_btn_box.pack_start(fw_btn, False, False, 0)
+
+    reset_btn = Gtk.Button(label=_("FACTORY RESET"))
+    reset_btn.get_style_context().add_class("danger-btn")
+
+    def on_factory_reset(btn):
+        dialog = Gtk.MessageDialog(
+            parent=app_state.get("window"),
+            flags=Gtk.DialogFlags.MODAL,
+            type=Gtk.MessageType.WARNING,
+            buttons=Gtk.ButtonsType.OK_CANCEL,
+            message_format=_("All settings will be restored to factory defaults. Are you sure?")
+        )
+        dialog.set_title(_("Factory Reset"))
+        response = dialog.run()
+        dialog.destroy()
+        if response == Gtk.ResponseType.OK:
+            def cb(success, msg):
+                if not success:
+                    GLib.idle_add(set_status, "error", "✗ " + _("Mouse not connected"))
+            run_rivalcfg(["--reset"], cb)
+
+    reset_btn.connect("clicked", on_factory_reset)
+    diag_btn_box.pack_start(reset_btn, False, False, 0)
+
+    diagnostics_card.pack_start(diag_btn_box, False, False, 0)
 
     return page
 
