@@ -2,11 +2,11 @@
 
 # 🇺🇸 English
 
-A Linux desktop configuration tool for the SteelSeries Rival 3 mouse.
+A Linux desktop configuration tool for SteelSeries mice (via the `rivalcfg` CLI).
 
 ## What It Does
 
-This application lets you configure your SteelSeries Rival 3 using the `rivalcfg` command-line tool:
+This application lets you configure your SteelSeries mouse using the `rivalcfg` command-line tool:
 
 - **DPI Settings** — 5 adjustable presets via sliders (200–8500, in 100-step increments)
 - **Polling Rate** — 125 / 250 / 500 / 1000 Hz selection
@@ -18,9 +18,13 @@ This application lets you configure your SteelSeries Rival 3 using the `rivalcfg
 
 ## Supported Devices
 
-- SteelSeries Rival 3
+Works with all devices supported by `rivalcfg` — Rival 100/300/500/600/700 series,
+Sensei, Kinzu, Aerox, Prime, and more.
 
-> Note: Other SteelSeries devices may be supported by `rivalcfg`, but this GUI is currently tested only against the Rival 3 command set.
+> Full list: https://github.com/flozz/rivalcfg#supported-devices
+>
+> Currently designed and tested against the Rival 3.
+> Feature availability (RGB zones, button count, polling rates) depends on device.
 
 ## Installation
 
@@ -80,11 +84,11 @@ If no mouse is connected or `rivalcfg` is not found, the application will exit i
 
 # 🇹🇷 Türkçe
 
-SteelSeries Rival 3 faresi için Linux masaüstü yapılandırma aracı.
+SteelSeries fareler için Linux masaüstü yapılandırma aracı (`rivalcfg` CLI üzerinden).
 
 ## Ne İşe Yarar
 
-Bu uygulama, `rivalcfg` komut satırı aracını kullanarak SteelSeries Rival 3 faresinin aşağıdaki ayarlarını yapmanızı sağlar:
+Bu uygulama, `rivalcfg` komut satırı aracını kullanarak SteelSeries farenizin aşağıdaki ayarlarını yapmanızı sağlar:
 
 - **DPI Ayarları** — 5 preset değer, slider ile 200–8500 arası (100'lük adımlar)
 - **Polling Rate** — 125 / 250 / 500 / 1000 Hz seçimi
@@ -96,9 +100,13 @@ Bu uygulama, `rivalcfg` komut satırı aracını kullanarak SteelSeries Rival 3 
 
 ## Desteklenen Cihazlar
 
-- SteelSeries Rival 3
+`rivalcfg` tarafından desteklenen tüm cihazlarla çalışır — Rival 100/300/500/600/700
+serileri, Sensei, Kinzu, Aerox, Prime ve daha fazlası.
 
-> Not: Diğer SteelSeries cihazlar `rivalcfg` tarafından destekleniyor olabilir, ancak bu GUI şu an yalnızca Rival 3 komut setiyle test edilmiştir.
+> Tam liste: https://github.com/flozz/rivalcfg#supported-devices
+>
+> Şu an Rival 3 ile tasarlanmış ve test edilmiştir.
+> Özellik kullanılabilirliği (RGB bölgeleri, buton sayısı, polling rate) cihaza göre değişir.
 
 ## Kurulum
 

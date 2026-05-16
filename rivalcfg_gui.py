@@ -841,7 +841,7 @@ def create_about_page():
     page.pack_start(card, True, True, 0)
 
     text = (
-        "SteelSeries Rival 3 için Linux GUI yapılandırma aracı.\n"
+        "SteelSeries fareler için Linux GUI yapılandırma aracı.\n"
         "rivalcfg kütüphanesi üzerine inşa edilmiştir.\n\n"
         "Gereksinimler:\n"
         "  yay -S install rivalcfg\n"

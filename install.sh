@@ -145,7 +145,7 @@ install_files() {
 Version=1.0
 Type=Application
 Name=RivalCFG GUI
-Comment=SteelSeries Rival 3 configuration tool
+Comment=SteelSeries mouse configuration tool
 Exec=$INSTALL_DIR/rivalcfg_gui.py
 Icon=$INSTALL_DIR/logo.png
 Terminal=false
