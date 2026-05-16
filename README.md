@@ -28,28 +28,23 @@ Sensei, Kinzu, Aerox, Prime, and more.
 
 ## Installation
 
-### Automatic (Recommended)
-
-An automated installer script is included. It detects your distribution, installs dependencies, copies the application system-wide, creates a desktop entry, and sets up a `rivalcfg-gui` command.
+### Arch Linux (AUR)
 
 ```bash
-chmod +x install.sh
-sudo ./install.sh
+yay -S rivalcfg-gui
 ```
 
-**What it does:**
-- Detects your distro (Arch, Debian, Fedora, openSUSE and derivatives)
-- Installs required packages (`rivalcfg`, `python-gobject`, `python-cairo`)
-- Copies files to `/usr/local/share/rivalcfg-gui/`
-- Creates symlink at `/usr/local/bin/rivalcfg-gui`
-- Creates desktop entry at `/usr/share/applications/rivalcfg-gui.desktop`
+**Upgrade:**
+```bash
+yay -Suy rivalcfg-gui
+```
 
 **Uninstall:**
 ```bash
-sudo ./install.sh --uninstall
+yay -Rns rivalcfg-gui
 ```
 
-### APT Repository (Debian/Ubuntu)
+### Debian/Ubuntu (APT)
 
 Add the repository and install via `apt` for automatic updates:
 
@@ -131,28 +126,23 @@ serileri, Sensei, Kinzu, Aerox, Prime ve daha fazlası.
 
 ## Kurulum
 
-### Otomatik Kurulum (Tavsiye Edilen)
-
-Projeye dahil edilen `install.sh` scripti, dağıtımınızı algılayıp bağımlılıkları kurar, uygulamayı sistem geneline kopyalar, masaüstü kısayolu oluşturur ve `rivalcfg-gui` komutunu kullanıma sunar.
+### Arch Linux (AUR)
 
 ```bash
-chmod +x install.sh
-sudo ./install.sh
+yay -S rivalcfg-gui
 ```
 
-**Yaptıkları:**
-- Dağıtımınızı algılar (Arch, Debian, Fedora, openSUSE ve türevleri)
-- Gerekli paketleri kurar (`rivalcfg`, `python-gobject`, `python-cairo`)
-- Dosyaları `/usr/local/share/rivalcfg-gui/` dizinine kopyalar
-- `/usr/local/bin/rivalcfg-gui` sembolik bağı oluşturur
-- `/usr/share/applications/rivalcfg-gui.desktop` kısayolunu oluşturur
+**Güncelleme:**
+```bash
+yay -Suy rivalcfg-gui
+```
 
 **Kaldırma:**
 ```bash
-sudo ./install.sh --uninstall
+yay -Rns rivalcfg-gui
 ```
 
-### APT Deposu (Debian/Ubuntu)
+### Debian/Ubuntu (APT)
 
 Depoyu ekleyin ve `apt` ile kurun, otomatik güncellemeler alın:
 
