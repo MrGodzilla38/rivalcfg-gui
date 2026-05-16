@@ -3,6 +3,7 @@
 # GTK3 dependency check
 import sys
 import os
+import json
 import subprocess
 import threading
 import math
@@ -25,6 +26,39 @@ except FileNotFoundError:
 
 # Global dictionary holding application state
 app_state = {}
+
+SETTINGS_DIR = os.path.expanduser("~/.config/rivalcfg-gui")
+SETTINGS_FILE = os.path.join(SETTINGS_DIR, "settings.json")
+
+DEFAULT_SETTINGS = {
+    "startup_minimize": False,
+    "auto_apply": False,
+    "accent_color": "#e84545",
+}
+
+
+def load_settings():
+    """Load settings from JSON file."""
+    try:
+        if os.path.exists(SETTINGS_FILE):
+            with open(SETTINGS_FILE, "r") as f:
+                saved = json.load(f)
+            settings = dict(DEFAULT_SETTINGS)
+            settings.update(saved)
+            return settings
+    except Exception:
+        pass
+    return dict(DEFAULT_SETTINGS)
+
+
+def save_settings():
+    """Save current settings to JSON file."""
+    try:
+        os.makedirs(SETTINGS_DIR, exist_ok=True)
+        with open(SETTINGS_FILE, "w") as f:
+            json.dump(app_state["settings"], f, indent=4)
+    except Exception as e:
+        print(f"Failed to save settings: {e}")
 
 CSS = """
 window {
@@ -158,6 +192,25 @@ checkbutton label {
 checkbutton:checked label {
     color: #ffaa33;
 }
+
+.setting-row {
+    padding: 4px 0;
+}
+
+.setting-label {
+    font-size: 13px;
+    color: #ccccdd;
+}
+
+.setting-desc {
+    font-size: 11px;
+    color: #555566;
+}
+
+.color-preview {
+    border: 1px solid #2a2a40;
+    border-radius: 6px;
+}
 """
 
 
@@ -276,6 +329,10 @@ def create_dpi_page():
             v = int(sc.get_value())
             vl.set_text(str(v))
             app_state["dpi_values"][idx] = v
+            if app_state["settings"].get("auto_apply"):
+                vals = app_state["dpi_values"]
+                arg = ",".join(str(val) for val in vals)
+                run_rivalcfg(["--sensitivity", arg])
 
         scale.connect("value-changed", on_dpi_changed)
         row.pack_start(scale, True, True, 0)
@@ -350,6 +407,8 @@ def create_polling_page():
                 app_state["polling_hz"] = val
                 ms = 1000.0 / val
                 app_state["polling_display"].set_text(f"{val} Hz  →  {ms:.1f} ms")
+                if app_state["settings"].get("auto_apply"):
+                    run_rivalcfg(["--polling-rate", str(val)])
 
         rb.connect("toggled", on_polling_toggled)
         radio_box.pack_start(rb, False, False, 0)
@@ -439,6 +498,15 @@ def create_rgb_page():
             col = button.get_rgba()
             app_state[key] = rgba_to_hex(col)
             preview.queue_draw()
+            if app_state["settings"].get("auto_apply"):
+                color_map = {
+                    "z1_hex": "--strip-top-color",
+                    "z2_hex": "--strip-middle-color",
+                    "z3_hex": "--strip-bottom-color",
+                    "z4_hex": "--logo-color",
+                }
+                if key in color_map:
+                    run_rivalcfg([color_map[key], app_state[key]])
 
         color_btn.connect("color-set", on_color_set)
         return row
@@ -480,6 +548,8 @@ def create_rgb_page():
         def on_effect_toggled(button, val=value):
             if button.get_active():
                 app_state["selected_effect"] = val
+                if app_state["settings"].get("auto_apply"):
+                    run_rivalcfg(["--light-effect", val])
 
         rb.connect("toggled", on_effect_toggled)
         eff_box.pack_start(rb, False, False, 0)
@@ -604,6 +674,16 @@ def create_buttons_page():
             app_state["button_mapping"][name] = widget.get_active_text()
             if app_state.get("redraw_buttons"):
                 app_state["redraw_buttons"]()
+            if app_state["settings"].get("auto_apply"):
+                m = app_state["button_mapping"]
+                arg = (
+                    f"buttons(button1={m['button1']}; button2={m['button2']}; "
+                    f"button3={m['button3']}; button4={m['button4']}; "
+                    f"button5={m['button5']}; button6={m['button6']}; "
+                    f"scrollup={m['scrollup']}; scrolldown={m['scrolldown']}; "
+                    f"layout=qwerty)"
+                )
+                run_rivalcfg(["--buttons", arg])
 
         combo.connect("changed", on_changed)
         left_card.pack_start(row, False, False, 0)
@@ -934,8 +1014,205 @@ def create_about_page():
     return page
 
 
+def create_settings_page():
+    """Create Settings page."""
+    page = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
+    page.set_margin_top(24)
+    page.set_margin_bottom(24)
+    page.set_margin_start(24)
+    page.set_margin_end(24)
+
+    title = Gtk.Label(label="Settings")
+    title.get_style_context().add_class("page-title")
+    title.set_halign(Gtk.Align.START)
+    page.pack_start(title, False, False, 0)
+
+    # --- BEHAVIOR CARD ---
+    behavior_card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
+    behavior_card.get_style_context().add_class("card")
+    page.pack_start(behavior_card, False, False, 0)
+
+    behavior_title = Gtk.Label(label="BEHAVIOR")
+    behavior_title.get_style_context().add_class("card-title")
+    behavior_title.set_halign(Gtk.Align.START)
+    behavior_card.pack_start(behavior_title, False, False, 0)
+
+    # Startup Minimize
+    sm_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=16)
+    sm_row.get_style_context().add_class("setting-row")
+
+    sm_text = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
+    sm_text.set_hexpand(True)
+    sm_label = Gtk.Label(label="Startup Minimize")
+    sm_label.get_style_context().add_class("setting-label")
+    sm_label.set_halign(Gtk.Align.START)
+    sm_desc = Gtk.Label(label="Launch minimized to system tray")
+    sm_desc.get_style_context().add_class("setting-desc")
+    sm_desc.set_halign(Gtk.Align.START)
+    sm_text.pack_start(sm_label, False, False, 0)
+    sm_text.pack_start(sm_desc, False, False, 0)
+    sm_row.pack_start(sm_text, True, True, 0)
+
+    sm_switch = Gtk.Switch()
+    sm_switch.set_active(app_state["settings"]["startup_minimize"])
+    sm_row.pack_start(sm_switch, False, False, 0)
+
+    sm_switch.connect("notify::active", lambda *a: (app_state["settings"].__setitem__("startup_minimize", sm_switch.get_active()), save_settings()))
+    behavior_card.pack_start(sm_row, False, False, 0)
+
+    # Auto-Apply on Change
+    aa_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=16)
+    aa_row.get_style_context().add_class("setting-row")
+
+    aa_text = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
+    aa_text.set_hexpand(True)
+    aa_label = Gtk.Label(label="Auto-Apply on Change")
+    aa_label.get_style_context().add_class("setting-label")
+    aa_label.set_halign(Gtk.Align.START)
+    aa_desc = Gtk.Label(label="Apply settings immediately when changed")
+    aa_desc.get_style_context().add_class("setting-desc")
+    aa_desc.set_halign(Gtk.Align.START)
+    aa_text.pack_start(aa_label, False, False, 0)
+    aa_text.pack_start(aa_desc, False, False, 0)
+    aa_row.pack_start(aa_text, True, True, 0)
+
+    aa_switch = Gtk.Switch()
+    aa_switch.set_active(app_state["settings"]["auto_apply"])
+    aa_row.pack_start(aa_switch, False, False, 0)
+
+    aa_switch.connect("notify::active", lambda *a: (app_state["settings"].__setitem__("auto_apply", aa_switch.get_active()), save_settings()))
+    behavior_card.pack_start(aa_row, False, False, 0)
+
+    # --- APPEARANCE CARD ---
+    appearance_card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
+    appearance_card.get_style_context().add_class("card")
+    page.pack_start(appearance_card, False, False, 0)
+
+    appearance_title = Gtk.Label(label="APPEARANCE")
+    appearance_title.get_style_context().add_class("card-title")
+    appearance_title.set_halign(Gtk.Align.START)
+    appearance_card.pack_start(appearance_title, False, False, 0)
+
+    # Accent Color
+    ac_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=16)
+    ac_row.get_style_context().add_class("setting-row")
+
+    ac_text = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
+    ac_text.set_hexpand(True)
+    ac_label = Gtk.Label(label="Accent Color")
+    ac_label.get_style_context().add_class("setting-label")
+    ac_label.set_halign(Gtk.Align.START)
+    ac_desc = Gtk.Label(label="UI highlight and button color")
+    ac_desc.get_style_context().add_class("setting-desc")
+    ac_desc.set_halign(Gtk.Align.START)
+    ac_text.pack_start(ac_label, False, False, 0)
+    ac_text.pack_start(ac_desc, False, False, 0)
+    ac_row.pack_start(ac_text, True, True, 0)
+
+    current_accent = app_state["settings"]["accent_color"]
+    rgba = Gdk.RGBA()
+    rgba.parse(current_accent)
+
+    ac_color_btn = Gtk.ColorButton()
+    ac_color_btn.set_rgba(rgba)
+    ac_color_btn.set_size_request(50, 30)
+    ac_row.pack_start(ac_color_btn, False, False, 0)
+
+    ac_preview = Gtk.DrawingArea()
+    ac_preview.set_size_request(60, 24)
+    ac_preview.get_style_context().add_class("color-preview")
+    ac_row.pack_start(ac_preview, False, False, 0)
+
+    def on_accent_draw(widget, cr):
+        w = widget.get_allocated_width()
+        h = widget.get_allocated_height()
+        r = int(current_accent[1:3], 16) / 255.0
+        g = int(current_accent[3:5], 16) / 255.0
+        b = int(current_accent[5:7], 16) / 255.0
+        cr.set_source_rgb(r, g, b)
+        cr.rectangle(0, 0, w, h)
+        cr.fill()
+        return False
+
+    ac_preview.connect("draw", on_accent_draw)
+
+    def on_accent_color_set(button):
+        nonlocal current_accent
+        col = button.get_rgba()
+        current_accent = f"#{int(col.red * 255):02x}{int(col.green * 255):02x}{int(col.blue * 255):02x}"
+        app_state["settings"]["accent_color"] = current_accent
+        ac_preview.queue_draw()
+        update_accent_color(current_accent)
+        save_settings()
+
+    ac_color_btn.connect("color-set", on_accent_color_set)
+    appearance_card.pack_start(ac_row, False, False, 0)
+
+    # Reset to Default button
+    reset_accent_btn = Gtk.Button(label="Reset to Default")
+    reset_accent_btn.get_style_context().add_class("reset-btn")
+    reset_accent_btn.set_halign(Gtk.Align.START)
+    reset_accent_btn.set_margin_top(8)
+
+    def on_reset_accent(btn):
+        nonlocal current_accent
+        current_accent = DEFAULT_SETTINGS["accent_color"]
+        app_state["settings"]["accent_color"] = current_accent
+        rgba = Gdk.RGBA()
+        rgba.parse(current_accent)
+        ac_color_btn.set_rgba(rgba)
+        ac_preview.queue_draw()
+        update_accent_color(current_accent)
+        save_settings()
+
+    reset_accent_btn.connect("clicked", on_reset_accent)
+    appearance_card.pack_start(reset_accent_btn, False, False, 0)
+
+    return page
+
+
+def update_accent_color(accent):
+    """Update the CSS accent color dynamically."""
+    r = int(accent[1:3], 16) / 255.0
+    g = int(accent[3:5], 16) / 255.0
+    b = int(accent[5:7], 16) / 255.0
+    rgb = f"{r:.2f}, {g:.2f}, {b:.2f}"
+    css_accent = f"""
+    .nav-active {{
+        background: rgba({rgb}, 0.13);
+        color: {accent};
+    }}
+    .apply-btn {{
+        background: {accent};
+    }}
+    .apply-btn:hover {{
+        background: rgba({rgb}, 0.8);
+    }}
+    .card-title {{
+        color: {accent};
+    }}
+    scale trough highlight {{
+        background: {accent};
+    }}
+    .danger-btn {{
+        border: 1px solid {accent};
+        color: {accent};
+    }}
+    .danger-btn:hover {{
+        background: {accent};
+    }}
+    """
+    provider = Gtk.CssProvider()
+    provider.load_from_data(css_accent.encode('utf-8'))
+    context = Gtk.StyleContext()
+    screen = Gdk.Screen.get_default()
+    context.add_provider_for_screen(screen, provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION + 1)
+
+
 def create_window():
     """Create the main window and its contents."""
+    app_state["settings"] = load_settings()
+
     window = Gtk.Window(title="RivalCFG GUI")
     window.set_default_size(1280, 720)
     window.set_resizable(True)
@@ -957,6 +1234,9 @@ def create_window():
         css_provider,
         Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
     )
+
+    # Apply accent color
+    update_accent_color(app_state["settings"]["accent_color"])
 
     vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
     window.add(vbox)
@@ -1002,6 +1282,7 @@ def create_window():
         ("rgb", "RGB", create_rgb_page()),
         ("buttons", "BUTTONS", create_buttons_page()),
         ("devices", "DEVICES", create_devices_page()),
+        ("settings", "SETTINGS", create_settings_page()),
         ("about", "ABOUT", create_about_page()),
     ]
 
@@ -1063,6 +1344,9 @@ def create_window():
     GLib.idle_add(startup_check)
 
     window.show_all()
+
+    if app_state["settings"]["startup_minimize"]:
+        window.iconify()
 
 
 def main():
