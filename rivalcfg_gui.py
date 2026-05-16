@@ -1286,6 +1286,7 @@ def rebuild_ui():
         window.remove(child)
 
     app_state["nav_buttons"] = []
+    app_state["is_rebuild"] = True
     create_window_content(window)
 
     app_state["stack"].set_visible_child_name(current_page)
@@ -1293,6 +1294,11 @@ def rebuild_ui():
         if btn.get_label() == get_nav_label(current_page):
             btn.get_style_context().add_class("nav-active")
             break
+
+    window.show_all()
+
+    if app_state["settings"]["startup_minimize"]:
+        window.iconify()
 
 
 def get_nav_label(page_name):
@@ -1312,6 +1318,7 @@ def get_nav_label(page_name):
 def create_window():
     """Create the main window and its contents."""
     app_state["settings"] = load_settings()
+    app_state["is_rebuild"] = False
     lang = app_state["settings"].get("language", None)
     _set_language(lang)
 
@@ -1433,15 +1440,16 @@ def create_window_content(window):
 
     no_save_check.connect("toggled", on_no_save_toggled)
 
-    def startup_check():
-        def cb(success, msg):
-            if success and "184c" in msg:
-                set_status("ok", "✓ " + _("Mouse connected"))
-            else:
-                set_status("error", "✗ " + _("Mouse not found"))
-        run_rivalcfg(["--print-debug"], cb)
+    if not app_state.get("is_rebuild"):
+        def startup_check():
+            def cb(success, msg):
+                if success and "184c" in msg:
+                    set_status("ok", "✓ " + _("Mouse connected"))
+                else:
+                    set_status("error", "✗ " + _("Mouse not found"))
+            run_rivalcfg(["--print-debug"], cb)
 
-    GLib.idle_add(startup_check)
+        GLib.idle_add(startup_check)
 
 
 def main():
