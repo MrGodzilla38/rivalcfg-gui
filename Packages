@@ -1,5 +1,5 @@
 Package: rivalcfg-gui
-Version: 1.0.0
+Version: 1.1.0
 Section: x11
 Priority: optional
 Architecture: all
@@ -12,9 +12,9 @@ Description: GTK3 GUI configuration tool for SteelSeries mice (via rivalcfg)
  SteelSeries mouse settings including DPI, polling rate,
  RGB lighting, and button mappings through a modern GTK3 interface.
  Works with all devices supported by the rivalcfg CLI tool.
-Filename: rivalcfg-gui_1.0.0.deb
-Size: 676576
-MD5sum: 7ce5e8982c52d5f95d5a46d17da8c664
-SHA1: 53297528dc5ef33a2fded397b841f834c3e6165c
-SHA256: 7b687293644392b7d538bf68f32b98148de56331f9dfd6c781bc7110d2388be6
+Filename: rivalcfg-gui_1.1.0.deb
+Size: 676538
+MD5sum: f6a5a71a61a8a9fedc14f21e68375a5a
+SHA1: 95d56356ad9a9aec42bc2c5ed03a4df4b4f8fbee
+SHA256: 117a05018da3fcd68215fb2f9c3524e34b5f461316b8b6e397a9cba402667148
 
