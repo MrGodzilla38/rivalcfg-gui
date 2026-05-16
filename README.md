@@ -8,10 +8,13 @@ A Linux desktop configuration tool for the SteelSeries Rival 3 mouse.
 
 This application lets you configure your SteelSeries Rival 3 using the `rivalcfg` command-line tool:
 
-- **DPI:** Adjust 5 preset values via slider (200–8500, in 100-step increments)
-- **Polling Rate:** Choose 125 / 250 / 500 / 1000 Hz
-- **RGB Lighting:** Set logo and wheel colors, and select light effects (steady, breath, breath-slow, rainbow-shift, disco)
-- **Reset All Settings:** Restore mouse factory defaults
+- **DPI Settings** — 5 adjustable presets via sliders (200–8500, in 100-step increments)
+- **Polling Rate** — 125 / 250 / 500 / 1000 Hz selection
+- **RGB Lighting** — 4 independent zones (top strip, middle strip, bottom strip, logo) with 7 effects (steady, breath, breath-slow, breath-fast, rainbow-shift, rainbow-breath, disco)
+- **Button Mapping** — remap all 8 buttons (left, right, middle, back, forward, DPI, scroll up/down)
+- **Device Info** — list connected devices and check firmware version
+- **Mouse Status** — real-time connection status in the status bar
+- **Factory Reset** — restore all mouse settings to defaults
 
 ## Supported Devices
 
@@ -51,13 +54,13 @@ sudo ./install.sh --uninstall
 yay -S rivalcfg
 
 # rivalcfg (Debian/Ubuntu)
-# sudo apt install rivalcfg
+sudo apt install rivalcfg
 
 # python-gobject & python-cairo (Arch)
 sudo pacman -S python-gobject python-cairo
 
 # python-gobject & python-cairo (Debian/Ubuntu)
-# sudo apt install python3-gi python3-cairo
+sudo apt install python3-gi python3-cairo
 
 # 2. Run
 python rivalcfg_gui.py
@@ -83,10 +86,13 @@ SteelSeries Rival 3 faresi için Linux masaüstü yapılandırma aracı.
 
 Bu uygulama, `rivalcfg` komut satırı aracını kullanarak SteelSeries Rival 3 faresinin aşağıdaki ayarlarını yapmanızı sağlar:
 
-- **DPI:** 5 adet preset değerini slider ile ayarlayın (200–8500 arası, 100'lük adımlarla)
-- **Polling Rate:** 125 / 250 / 500 / 1000 Hz seçimi
-- **RGB Aydınlatma:** Logo ve tekerlek renkleri, ışık efekti (steady, breath, breath-slow, rainbow-shift, disco)
-- **Tüm Ayarları Sıfırlama:** Fareyi fabrika ayarlarına döndürme
+- **DPI Ayarları** — 5 preset değer, slider ile 200–8500 arası (100'lük adımlar)
+- **Polling Rate** — 125 / 250 / 500 / 1000 Hz seçimi
+- **RGB Aydınlatma** — 4 bağımsız bölge (üst şerit, orta şerit, alt şerit, logo), 7 efekt (steady, breath, breath-slow, breath-fast, rainbow-shift, rainbow-breath, disco)
+- **Buton Eşlemeleri** — 8 butonun tamamını yeniden eşleme (sol, sağ, orta, geri, ileri, DPI, scroll yukarı/aşağı)
+- **Cihaz Bilgisi** — bağlı cihazları listeleme, firmware sürümü sorgulama
+- **Fare Durumu** — durum çubuğunda anlık bağlantı kontrolü
+- **Fabrika Sıfırlama** — tüm fare ayarlarını varsayılana döndürme
 
 ## Desteklenen Cihazlar
 
@@ -126,13 +132,13 @@ sudo ./install.sh --uninstall
 yay -S rivalcfg
 
 # rivalcfg (Debian/Ubuntu)
-# sudo apt install rivalcfg
+sudo apt install rivalcfg
 
 # python-gobject & python-cairo (Arch)
 sudo pacman -S python-gobject python-cairo
 
 # python-gobject & python-cairo (Debian/Ubuntu)
-# sudo apt install python3-gi python3-cairo
+sudo apt install python3-gi python3-cairo
 
 # 2. Çalıştırın
 python rivalcfg_gui.py
