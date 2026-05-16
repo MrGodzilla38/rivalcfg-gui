@@ -1,3 +1,9 @@
+rivalcfg-gui (1.2.1-1) unstable; urgency=medium
+
+  * Hotfix: Install locale files for i18n support.
+
+ -- MrGodzilla38 <oyunustasigodzilla@gmail.com>  Sat, 16 May 2026 18:24:36 +0000
+
 rivalcfg-gui (1.2.0-1) unstable; urgency=medium
 
   * Release 1.2.0.
