@@ -89,11 +89,11 @@ msgstr "İleri (B5)"
 msgid "DPI (B6)"
 msgstr "DPI (B6)"
 
-msgid "Scroll ↑"
-msgstr "Kaydır ↑"
+msgid "Scroll Up"
+msgstr "Yukarı Kaydır"
 
-msgid "Scroll ↓"
-msgstr "Kaydır ↓"
+msgid "Scroll Down"
+msgstr "Aşağı Kaydır"
 
 msgid "Left Click"
 msgstr "Sol Tıklama"

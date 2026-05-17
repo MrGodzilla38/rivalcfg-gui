@@ -89,11 +89,11 @@ msgstr "Forward (B5)"
 msgid "DPI (B6)"
 msgstr "DPI (B6)"
 
-msgid "Scroll ↑"
-msgstr "Scroll ↑"
+msgid "Scroll Up"
+msgstr "Scroll Up"
 
-msgid "Scroll ↓"
-msgstr "Scroll ↓"
+msgid "Scroll Down"
+msgstr "Scroll Down"
 
 msgid "Left Click"
 msgstr "Left Click"

@@ -630,20 +630,6 @@ def create_buttons_page():
     title.set_halign(Gtk.Align.START)
     page.pack_start(title, False, False, 0)
 
-    content = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=16)
-    page.pack_start(content, True, True, 0)
-
-    # --- SOL PANEL ---
-    left_card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
-    left_card.set_size_request(280, -1)
-    left_card.get_style_context().add_class("card")
-    content.pack_start(left_card, False, False, 0)
-
-    card_title = Gtk.Label(label=_("BUTTON ASSIGNMENTS"))
-    card_title.get_style_context().add_class("card-title")
-    card_title.set_halign(Gtk.Align.START)
-    left_card.pack_start(card_title, False, False, 0)
-
     button_options = [
         "button1", "button2", "button3", "button4", "button5",
         "button6", "dpi", "scrollup", "scrolldown", "disable"
@@ -661,57 +647,213 @@ def create_buttons_page():
     }
 
     app_state["button_mapping"] = dict(defaults)
-    app_state["button_combos"] = {}
 
-    labels = {
-        "button1": _("Left Click (B1)"),
-        "button2": _("Right Click (B2)"),
-        "button3": _("Middle Click (B3)"),
-        "button4": _("Back (B4)"),
-        "button5": _("Forward (B5)"),
-        "button6": _("DPI (B6)"),
-        "scrollup": _("Scroll ↑"),
-        "scrolldown": _("Scroll ↓"),
-    }
+    card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+    card.get_style_context().add_class("card")
+    page.pack_start(card, True, True, 0)
 
-    for btn_name in ["button1", "button2", "button3", "button4", "button5", "button6", "scrollup", "scrolldown"]:
-        row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
-        row.set_margin_bottom(6)
+    img_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "rival3.png")
 
-        lbl = Gtk.Label(label=labels[btn_name])
-        lbl.set_size_request(110, -1)
-        lbl.set_xalign(0)
-        row.pack_start(lbl, False, False, 0)
+    overlay = Gtk.Overlay()
+    overlay.set_hexpand(True)
+    overlay.set_vexpand(True)
 
-        combo = Gtk.ComboBoxText()
-        for opt in button_options:
-            combo.append_text(opt)
-        combo.set_active(button_options.index(defaults[btn_name]))
-        combo.set_hexpand(True)
-        row.pack_start(combo, True, True, 0)
-        app_state["button_combos"][btn_name] = combo
+    if os.path.exists(img_path):
+        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(img_path, 320, 320, True)
+        image_widget = Gtk.Image.new_from_pixbuf(pixbuf)
+        image_widget.set_halign(Gtk.Align.CENTER)
+        image_widget.set_valign(Gtk.Align.CENTER)
+        overlay.add(image_widget)
+    else:
+        fallback = Gtk.Label(label=_("rival3.png not found."))
+        overlay.add(fallback)
 
-        def on_changed(widget, name=btn_name):
-            app_state["button_mapping"][name] = widget.get_active_text()
-            if app_state.get("redraw_buttons"):
-                app_state["redraw_buttons"]()
-            if app_state["settings"].get("auto_apply"):
-                m = app_state["button_mapping"]
-                arg = (
-                    f"buttons(button1={m['button1']}; button2={m['button2']}; "
-                    f"button3={m['button3']}; button4={m['button4']}; "
-                    f"button5={m['button5']}; button6={m['button6']}; "
-                    f"scrollup={m['scrollup']}; scrolldown={m['scrolldown']}; "
-                    f"layout=qwerty)"
-                )
-                run_rivalcfg(["--buttons", arg])
+    lines_area = Gtk.DrawingArea()
+    lines_area.set_hexpand(True)
+    lines_area.set_vexpand(True)
+    lines_area.set_halign(Gtk.Align.FILL)
+    lines_area.set_valign(Gtk.Align.FILL)
+    lines_area.set_app_paintable(True)
 
-        combo.connect("changed", on_changed)
-        left_card.pack_start(row, False, False, 0)
+    box_hit_areas = {}
+
+    def draw_lines(widget, cr):
+        w = widget.get_allocated_width()
+        h = widget.get_allocated_height()
+
+        cr.set_source_rgba(0, 0, 0, 0)
+        cr.paint()
+
+        img_w = 320
+        img_h = 320
+        img_x = (w - img_w) / 2
+        img_y = (h - img_h) / 2
+
+        btn_positions = {
+            "button1": (img_x + 100, img_y + 90),
+            "button2": (img_x + 220, img_y + 90),
+            "button3": (img_x + 160, img_y + 70),
+            "button4": (img_x + 75,  img_y + 170),
+            "button5": (img_x + 75,  img_y + 140),
+            "button6": (img_x + 160, img_y + 115),
+            "scrollup": (img_x + 155, img_y + 88),
+            "scrolldown": (img_x + 165, img_y + 125),
+        }
+
+        btn_display_names = {
+            "button1": _("Left Click"),
+            "button2": _("Right Click"),
+            "button3": _("Middle"),
+            "button4": _("Back"),
+            "button5": _("Forward"),
+            "button6": _("DPI"),
+            "scrollup": _("Scroll Up"),
+            "scrolldown": _("Scroll Down"),
+        }
+
+        lw = 130
+        lh = 24
+
+        # Middle - mouse'un tam üst ortasında
+        lx_middle = img_x + 160 - lw // 2
+        ly_middle = img_y - 10
+
+        # Scroll Up - Middle'nin solunda, hafif aşağıda
+        lx_scrollup = lx_middle - 120
+        ly_scrollup = ly_middle + 30
+
+        # Scroll Down - Middle'nin sağında, hafif aşağıda
+        lx_scrolldown = lx_middle + 120
+        ly_scrolldown = ly_middle + 30
+
+        # Her kutunun x pozisyonu
+        label_xs = {
+            "button3": lx_middle,
+            "scrollup": lx_scrollup,
+            "scrolldown": lx_scrolldown,
+            "button1": img_x - lw,
+            "button5": img_x - lw,
+            "button4": img_x - lw,
+            "button2": img_x + img_w,
+            "button6": img_x + img_w,
+        }
+
+        label_ys = {
+            "button3": ly_middle,
+            "scrollup": ly_scrollup,
+            "scrolldown": ly_scrolldown,
+            "button1": img_y + 80,
+            "button5": img_y + 130,
+            "button4": img_y + 180,
+            "button6": img_y + 130,
+            "button2": img_y + 80,
+        }
+
+        box_hit_areas.clear()
+
+        for btn_name, (bx, by) in btn_positions.items():
+            assigned = app_state["button_mapping"].get(btn_name, btn_name)
+            display_name = btn_display_names[btn_name]
+            label_text = f"{display_name}: {assigned}"
+            ly = label_ys[btn_name]
+            cx = label_xs[btn_name]
+
+            box_hit_areas[btn_name] = (cx, ly, lw, lh)
+
+            cr.set_source_rgba(0.4, 0.6, 1.0, 0.7)
+            cr.set_line_width(1.2)
+            cr.move_to(bx, by)
+            cr.line_to(cx, ly + lh / 2)
+            cr.stroke()
+
+            cr.set_source_rgb(0.4, 0.6, 1.0)
+            cr.arc(bx, by, 4, 0, 2 * math.pi)
+            cr.fill()
+
+            cr.set_source_rgba(0.08, 0.14, 0.26, 0.95)
+            cr.rectangle(cx, ly, lw, lh)
+            cr.fill()
+            cr.set_source_rgb(0.25, 0.40, 0.70)
+            cr.set_line_width(1)
+            cr.rectangle(cx, ly, lw, lh)
+            cr.stroke()
+
+            cr.set_source_rgb(1, 1, 1)
+            cr.select_font_face("monospace", 0, 0)
+            cr.set_font_size(9)
+            te = cr.text_extents(label_text)
+            cr.move_to(cx + (lw - te[2]) / 2, ly + lh / 2 + te[3] / 2)
+            cr.show_text(label_text)
+
+        return False
+
+    lines_area.connect("draw", draw_lines)
+
+    popover = Gtk.Popover.new(lines_area)
+    popover.set_modal(True)
+
+    popover_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
+    popover_box.set_margin_start(6)
+    popover_box.set_margin_end(6)
+    popover_box.set_margin_top(6)
+    popover_box.set_margin_bottom(6)
+
+    current_popover_btn = [None]
+
+    def apply_assignment(btn_name, value):
+        app_state["button_mapping"][btn_name] = value
+        app_state["redraw_buttons"]()
+        popover.popdown()
+        if app_state["settings"].get("auto_apply"):
+            m = app_state["button_mapping"]
+            arg = (
+                f"buttons(button1={m['button1']}; button2={m['button2']}; "
+                f"button3={m['button3']}; button4={m['button4']}; "
+                f"button5={m['button5']}; button6={m['button6']}; "
+                f"scrollup={m['scrollup']}; scrolldown={m['scrolldown']}; "
+                f"layout=qwerty)"
+            )
+            run_rivalcfg(["--buttons", arg])
+
+    for opt in button_options:
+        btn = Gtk.Button(label=opt)
+        btn.set_halign(Gtk.Align.FILL)
+        btn.connect("clicked", lambda w, o=opt: apply_assignment(current_popover_btn[0], o) if current_popover_btn[0] else None)
+        popover_box.pack_start(btn, False, False, 0)
+
+    popover.add(popover_box)
+    popover_box.show_all()
+    popover.hide()
+
+    def on_button_press(widget, event):
+        x, y = event.x, event.y
+        for btn_name, (bx, by, bw, bh) in box_hit_areas.items():
+            if bx <= x <= bx + bw and by <= y <= by + bh:
+                current_popover_btn[0] = btn_name
+                rect = Gdk.Rectangle()
+                rect.x = int(bx)
+                rect.y = int(by)
+                rect.width = int(bw)
+                rect.height = int(bh)
+                popover.set_pointing_to(rect)
+                popover.set_position(Gtk.PositionType.LEFT)
+                popover.popup()
+                return True
+        return False
+
+    lines_area.connect("button-press-event", on_button_press)
+    lines_area.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
+
+    overlay.add_overlay(lines_area)
+    app_state["redraw_buttons"] = lambda: lines_area.queue_draw()
+
+    card.pack_start(overlay, True, True, 0)
 
     btn_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
     btn_row.set_halign(Gtk.Align.START)
-    btn_row.set_margin_top(8)
+    btn_row.set_margin_top(12)
+    btn_row.set_margin_start(12)
+    btn_row.set_margin_bottom(12)
 
     apply_btn = Gtk.Button(label=_("APPLY"))
     apply_btn.get_style_context().add_class("apply-btn")
@@ -745,134 +887,12 @@ def create_buttons_page():
             "scrolldown": "scrolldown",
         }
         app_state["button_mapping"].update(defaults)
-        all_opts = ["button1", "button2", "button3", "button4", "button5", "button6", "dpi", "scrollup", "scrolldown", "disable"]
-        for btn_name, combo in app_state["button_combos"].items():
-            combo.set_active(all_opts.index(defaults[btn_name]))
+        app_state["redraw_buttons"]()
 
     reset_btn.connect("clicked", on_reset_buttons)
     btn_row.pack_start(reset_btn, False, False, 0)
 
-    left_card.pack_start(btn_row, False, False, 0)
-
-    # --- RIGHT PANEL: MOUSE IMAGE ---
-    right_card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-    right_card.get_style_context().add_class("card")
-    content.pack_start(right_card, True, True, 0)
-
-    img_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "rival3.png")
-
-    overlay = Gtk.Overlay()
-    overlay.set_hexpand(True)
-    overlay.set_vexpand(True)
-
-    if os.path.exists(img_path):
-        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(img_path, 320, 320, True)
-        image_widget = Gtk.Image.new_from_pixbuf(pixbuf)
-        image_widget.set_halign(Gtk.Align.CENTER)
-        image_widget.set_valign(Gtk.Align.CENTER)
-        overlay.add(image_widget)
-    else:
-        fallback = Gtk.Label(label=_("rival3.png not found."))
-        overlay.add(fallback)
-
-    # Label overlay - DrawingArea for lines and labels only
-    lines_area = Gtk.DrawingArea()
-    lines_area.set_hexpand(True)
-    lines_area.set_vexpand(True)
-    lines_area.set_halign(Gtk.Align.FILL)
-    lines_area.set_valign(Gtk.Align.FILL)
-    # Pass through mouse events
-    lines_area.set_app_paintable(True)
-
-    def draw_lines(widget, cr):
-        w = widget.get_allocated_width()
-        h = widget.get_allocated_height()
-
-        # Fully transparent background
-        cr.set_source_rgba(0, 0, 0, 0)
-        cr.paint()
-
-        # Image position within widget (320x320, centered)
-        img_w = 320
-        img_h = 320
-        img_x = (w - img_w) / 2
-        img_y = (h - img_h) / 2
-
-        # Rival 3 buton pozisyonları (320x320 görsel üzerinde)
-        btn_positions = {
-            "button1": (img_x + 100, img_y + 90),
-            "button2": (img_x + 220, img_y + 90),
-            "button3": (img_x + 160, img_y + 70),
-            "button4": (img_x + 75,  img_y + 170),
-            "button5": (img_x + 75,  img_y + 140),
-            "button6": (img_x + 160, img_y + 115),
-        }
-
-        btn_display_names = {
-            "button1": _("Left Click"),
-            "button2": _("Right Click"),
-            "button3": _("Middle"),
-            "button4": _("Back"),
-            "button5": _("Forward"),
-            "button6": _("DPI"),
-        }
-
-        # Labels aligned to the right
-        lw = 115
-        lh = 20
-        lx = img_x + img_w + 15
-
-        label_ys = {
-            "button3": img_y + 40,
-            "button1": img_y + 70,
-            "button6": img_y + 100,
-            "button2": img_y + 130,
-            "button5": img_y + 160,
-            "button4": img_y + 190,
-        }
-
-        for btn_name, (bx, by) in btn_positions.items():
-            assigned = app_state["button_mapping"].get(btn_name, btn_name)
-            display_name = btn_display_names[btn_name]
-            label_text = f"{display_name}: {assigned}"
-            ly = label_ys[btn_name]
-
-            # Line
-            cr.set_source_rgba(0.4, 0.6, 1.0, 0.7)
-            cr.set_line_width(1.2)
-            cr.move_to(bx, by)
-            cr.line_to(lx, ly + lh / 2)
-            cr.stroke()
-
-            # Nokta
-            cr.set_source_rgb(0.4, 0.6, 1.0)
-            cr.arc(bx, by, 4, 0, 2 * math.pi)
-            cr.fill()
-
-            # Kutu
-            cr.set_source_rgba(0.08, 0.14, 0.26, 0.95)
-            cr.rectangle(lx, ly, lw, lh)
-            cr.fill()
-            cr.set_source_rgb(0.25, 0.40, 0.70)
-            cr.set_line_width(1)
-            cr.rectangle(lx, ly, lw, lh)
-            cr.stroke()
-
-            # Text
-            cr.set_source_rgb(1, 1, 1)
-            cr.select_font_face("monospace", 0, 0)
-            cr.set_font_size(9)
-            te = cr.text_extents(label_text)
-            cr.move_to(lx + (lw - te[2]) / 2, ly + lh / 2 + te[3] / 2)
-            cr.show_text(label_text)
-
-        return False
-
-    lines_area.connect("draw", draw_lines)
-    overlay.add_overlay(lines_area)
-    app_state["redraw_buttons"] = lambda: lines_area.queue_draw()
-
-    right_card.pack_start(overlay, True, True, 0)
+    card.pack_start(btn_row, False, False, 0)
 
     return page
 
