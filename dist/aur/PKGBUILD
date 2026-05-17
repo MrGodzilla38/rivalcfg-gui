@@ -14,15 +14,14 @@ sha256sums=('6f3fdd335bae4281384dbafa7e863d923ea517a8bdaad6562295e7f47bffeb5b')
 package() {
     cd "${srcdir}/${pkgname}-${pkgver}"
 
-    # Install application files
+    # Install application files (ALL project files including locale, images, Python files, etc.)
     install -d "${pkgdir}/usr/share/${pkgname}"
-    install -Dm755 rivalcfg_gui.py "${pkgdir}/usr/share/${pkgname}/rivalcfg_gui.py"
-    install -Dm644 logo.png "${pkgdir}/usr/share/${pkgname}/logo.png"
-    install -Dm644 rival3.png "${pkgdir}/usr/share/${pkgname}/rival3.png"
 
-    # Install locale files
-    install -d "${pkgdir}/usr/share/${pkgname}/locales"
-    cp -r locales/* "${pkgdir}/usr/share/${pkgname}/locales/"
+    # Copy all project files, excluding only build/CI directories
+    rsync -a --exclude='dist/' --exclude='.git/' --exclude='.github/' --exclude='__pycache__/' --exclude='*.pyc' \
+      ./ "${pkgdir}/usr/share/${pkgname}/"
+
+    chmod 755 "${pkgdir}/usr/share/${pkgname}/rivalcfg_gui.py"
 
     # Create symlink
     install -d "${pkgdir}/usr/bin"
