@@ -766,9 +766,9 @@ def create_buttons_page():
             cr.line_to(cx, ly + lh / 2)
             cr.stroke()
 
-            cr.set_source_rgb(0.4, 0.6, 1.0)
-            cr.arc(bx, by, 4, 0, 2 * math.pi)
-            cr.fill()
+            #cr.set_source_rgb(0.4, 0.6, 1.0)
+            #cr.arc(bx, by, 4, 0, 2 * math.pi)
+            #cr.fill()
 
             cr.set_source_rgba(0.08, 0.14, 0.26, 0.95)
             cr.rectangle(cx, ly, lw, lh)
