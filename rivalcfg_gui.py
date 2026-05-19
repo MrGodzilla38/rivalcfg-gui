@@ -695,7 +695,7 @@ def create_buttons_page():
             "button3": (img_x + 160, img_y + 98),
             "button4": (img_x + 115, img_y + 185),
             "button5": (img_x + 115, img_y + 155),
-            "button6": (img_x + 160, img_y + 125),
+            "button6": (img_x + 160, img_y + 140),
             "scrollup": (img_x + 160, img_y + 90),
             "scrolldown": (img_x + 160, img_y + 110),
         }
@@ -751,6 +751,18 @@ def create_buttons_page():
 
         box_hit_areas.clear()
 
+        # Çizgi hedef kenarları
+        line_targets = {
+            "button3": "bottom",
+            "scrollup": "bottom",
+            "scrolldown": "bottom",
+            "button1": "right",
+            "button5": "right",
+            "button4": "right",
+            "button2": "left",
+            "button6": "left",
+        }
+
         for btn_name, (bx, by) in btn_positions.items():
             assigned = app_state["button_mapping"].get(btn_name, btn_name)
             display_name = btn_display_names[btn_name]
@@ -760,10 +772,19 @@ def create_buttons_page():
 
             box_hit_areas[btn_name] = (cx, ly, lw, lh)
 
+            # Çizgi hedef noktasını hesapla
+            target = line_targets.get(btn_name, "left")
+            if target == "bottom":
+                tx, ty = cx + lw / 2, ly + lh
+            elif target == "right":
+                tx, ty = cx + lw, ly + lh / 2
+            else:  # left
+                tx, ty = cx, ly + lh / 2
+
             cr.set_source_rgba(0.4, 0.6, 1.0, 0.7)
             cr.set_line_width(1.2)
             cr.move_to(bx, by)
-            cr.line_to(cx, ly + lh / 2)
+            cr.line_to(tx, ty)
             cr.stroke()
 
             #cr.set_source_rgb(0.4, 0.6, 1.0)
