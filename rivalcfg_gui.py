@@ -690,14 +690,14 @@ def create_buttons_page():
         img_y = (h - img_h) / 2
 
         btn_positions = {
-            "button1": (img_x + 100, img_y + 90),
-            "button2": (img_x + 220, img_y + 90),
-            "button3": (img_x + 160, img_y + 70),
-            "button4": (img_x + 75,  img_y + 170),
-            "button5": (img_x + 75,  img_y + 140),
-            "button6": (img_x + 160, img_y + 115),
-            "scrollup": (img_x + 155, img_y + 88),
-            "scrolldown": (img_x + 165, img_y + 125),
+            "button1": (img_x + 125, img_y + 100),
+            "button2": (img_x + 195, img_y + 100),
+            "button3": (img_x + 160, img_y + 98),
+            "button4": (img_x + 115, img_y + 185),
+            "button5": (img_x + 115, img_y + 155),
+            "button6": (img_x + 160, img_y + 125),
+            "scrollup": (img_x + 160, img_y + 90),
+            "scrolldown": (img_x + 160, img_y + 110),
         }
 
         btn_display_names = {
