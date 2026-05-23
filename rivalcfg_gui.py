@@ -10,36 +10,7 @@ import math
 import gettext
 import locale
 
-try:
-    import gi
-    gi.require_version('Gtk', '3.0')
-    from gi.repository import Gtk, Gdk, GLib, GdkPixbuf
-    import cairo
-except ImportError:
-    print("python-gobject is not installed. Install: pacman -S python-gobject")
-    sys.exit(1)
-
-# Check rivalcfg CLI availability
-try:
-    subprocess.run(["rivalcfg"], capture_output=True, timeout=5)
-except FileNotFoundError:
-    print("rivalcfg is not installed. Install: pip install rivalcfg")
-    sys.exit(1)
-
-# Global dictionary holding application state
-app_state = {}
-
-SETTINGS_DIR = os.path.expanduser("~/.config/rivalcfg-gui")
-SETTINGS_FILE = os.path.join(SETTINGS_DIR, "settings.json")
 LOCALE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "locales")
-
-DEFAULT_SETTINGS = {
-    "startup_minimize": False,
-    "auto_apply": False,
-    "accent_color": "#e84545",
-    "language": "en",
-    "active_profile": "Default",
-}
 
 def setup_gettext(lang=None):
     """Setup gettext translation for the given language."""
@@ -57,6 +28,36 @@ def _set_language(lang=None):
     _ = setup_gettext(lang)
 
 _ = setup_gettext()
+
+try:
+    import gi
+    gi.require_version('Gtk', '3.0')
+    from gi.repository import Gtk, Gdk, GLib, GdkPixbuf
+    import cairo
+except ImportError:
+    print(_("python-gobject is not installed. Install: pacman -S python-gobject"))
+    sys.exit(1)
+
+# Check rivalcfg CLI availability
+try:
+    subprocess.run(["rivalcfg"], capture_output=True, timeout=5)
+except FileNotFoundError:
+    print(_("rivalcfg is not installed. Install: pip install rivalcfg"))
+    sys.exit(1)
+
+# Global dictionary holding application state
+app_state = {}
+
+SETTINGS_DIR = os.path.expanduser("~/.config/rivalcfg-gui")
+SETTINGS_FILE = os.path.join(SETTINGS_DIR, "settings.json")
+
+DEFAULT_SETTINGS = {
+    "startup_minimize": False,
+    "auto_apply": False,
+    "accent_color": "#e84545",
+    "language": "en",
+    "active_profile": "Default",
+}
 
 
 def load_settings():
@@ -80,7 +81,7 @@ def save_settings():
         with open(SETTINGS_FILE, "w") as f:
             json.dump(app_state["settings"], f, indent=4)
     except Exception as e:
-        print(f"Failed to save settings: {e}")
+        print(_("Failed to save settings: {}").format(e))
 
 PROFILES_DIR = os.path.join(SETTINGS_DIR, "profiles")
 
@@ -543,11 +544,11 @@ def create_polling_page():
 
     for hz in rates:
         if group is None:
-            rb = Gtk.RadioButton(label=f"{hz} Hz")
+            rb = Gtk.RadioButton(label=_("{} Hz").format(hz))
             group = rb
             rb.set_active(hz == 1000)
         else:
-            rb = Gtk.RadioButton(label=f"{hz} Hz", group=group)
+            rb = Gtk.RadioButton(label=_("{} Hz").format(hz), group=group)
             rb.set_active(hz == 1000)
 
         app_state["polling_radios"][hz] = rb
@@ -556,7 +557,7 @@ def create_polling_page():
             if button.get_active():
                 app_state["polling_hz"] = val
                 ms = 1000.0 / val
-                app_state["polling_display"].set_text(f"{val} Hz  →  {ms:.1f} ms")
+                app_state["polling_display"].set_text(_("{} Hz → {} ms").format(val, f"{ms:.1f}"))
                 if not app_state.get("_loading_profile") and app_state["settings"].get("auto_apply"):
                     run_rivalcfg(["--polling-rate", str(val)])
 
@@ -565,7 +566,7 @@ def create_polling_page():
 
     card.pack_start(radio_box, False, False, 0)
 
-    display = Gtk.Label(label=_("1000 Hz  →  1.0 ms"))
+    display = Gtk.Label(label=_("{} Hz → {} ms").format("1000", "1.0"))
     display.get_style_context().add_class("value-display")
     display.set_halign(Gtk.Align.START)
     card.pack_start(display, False, False, 0)
@@ -678,13 +679,13 @@ def create_rgb_page():
     card.pack_start(effect_title, False, False, 0)
 
     effects = [
-        ("steady", "steady"),
-        ("breath", "breath"),
-        ("breath-slow", "breath-slow"),
-        ("breath-fast", "breath-fast"),
-        ("rainbow-shift", "rainbow-shift"),
-        ("rainbow-breath", "rainbow-breath"),
-        ("disco", "disco")
+        (_("Steady"), "steady"),
+        (_("Breath"), "breath"),
+        (_("Breath (Slow)"), "breath-slow"),
+        (_("Breath (Fast)"), "breath-fast"),
+        (_("Rainbow Shift"), "rainbow-shift"),
+        (_("Rainbow Breath"), "rainbow-breath"),
+        (_("Disco"), "disco"),
     ]
     app_state["selected_effect"] = "steady"
     app_state["effect_radios"] = {}
@@ -769,8 +770,16 @@ def create_buttons_page():
     page.pack_start(title, False, False, 0)
 
     button_options = [
-        "button1", "button2", "button3", "button4", "button5",
-        "button6", "dpi", "scrollup", "scrolldown", "disable"
+        ("button1", _("Button 1")),
+        ("button2", _("Button 2")),
+        ("button3", _("Button 3")),
+        ("button4", _("Button 4")),
+        ("button5", _("Button 5")),
+        ("button6", _("Button 6")),
+        ("dpi", _("DPI Cycle")),
+        ("scrollup", _("Scroll Up")),
+        ("scrolldown", _("Scroll Down")),
+        ("disable", _("Disable")),
     ]
 
     defaults = {
@@ -974,10 +983,10 @@ def create_buttons_page():
             )
             run_rivalcfg(["--buttons", arg])
 
-    for opt in button_options:
-        btn = Gtk.Button(label=opt)
+    for opt_val, opt_label in button_options:
+        btn = Gtk.Button(label=opt_label)
         btn.set_halign(Gtk.Align.FILL)
-        btn.connect("clicked", lambda w, o=opt: apply_assignment(current_popover_btn[0], o) if current_popover_btn[0] else None)
+        btn.connect("clicked", lambda w, o=opt_val: apply_assignment(current_popover_btn[0], o) if current_popover_btn[0] else None)
         popover_box.pack_start(btn, False, False, 0)
 
     popover.add(popover_box)
@@ -1130,9 +1139,9 @@ def create_about_page():
     text = (
         _("Linux GUI configuration tool for SteelSeries mice.") + "\n" +
         _("Built on top of the rivalcfg library.") + "\n\n" +
-        _("Requirements:") + "\n"
-        "  pip install rivalcfg\n"
-        "  pacman -S python-gobject python-cairo"
+        _("Requirements:") + "\n" +
+        _("  pip install rivalcfg") + "\n" +
+        _("  pacman -S python-gobject python-cairo")
     )
     label = Gtk.Label(label=text)
     label.set_line_wrap(True)
@@ -1149,7 +1158,7 @@ def create_about_page():
 
     link_btn = Gtk.LinkButton(
         uri="https://github.com/MrGodzilla38/rivalcfg-gui",
-        label="github.com/MrGodzilla38/rivalcfg-gui"
+        label=_("github.com/MrGodzilla38/rivalcfg-gui")
     )
     link_btn.set_halign(Gtk.Align.START)
     link_btn.set_relief(Gtk.ReliefStyle.NONE)
@@ -1534,9 +1543,9 @@ def rebuild_ui():
     def restore_page():
         app_state["stack"].set_visible_child_name(current_page)
         nav_labels = {
-            "dpi": "DPI",
+            "dpi": _("DPI"),
             "polling": _("POLLING"),
-            "rgb": "RGB",
+            "rgb": _("RGB"),
             "buttons": _("BUTTONS"),
             "devices": _("DEVICES"),
             "settings": _("SETTINGS"),
@@ -1883,9 +1892,9 @@ def create_window_content(window):
     app_state["stack"] = stack
 
     pages = [
-        ("dpi", "DPI", create_dpi_page()),
+        ("dpi", _("DPI"), create_dpi_page()),
         ("polling", _("POLLING"), create_polling_page()),
-        ("rgb", "RGB", create_rgb_page()),
+        ("rgb", _("RGB"), create_rgb_page()),
         ("buttons", _("BUTTONS"), create_buttons_page()),
         ("devices", _("DEVICES"), create_devices_page()),
         ("settings", _("SETTINGS"), create_settings_page()),

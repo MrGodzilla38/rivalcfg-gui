@@ -3,238 +3,443 @@ msgid ""
 msgstr ""
 "Project-Id-Version: rivalcfg-gui 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-16\n"
+"POT-Creation-Date: 2026-05-23 22:43+0300\n"
 "PO-Revision-Date: 2026-05-16\n"
-"Last-Translator: \n"
+"Last-Translator: Automatically generated\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-msgid "Unknown error"
-msgstr "Unknown error"
+#: rivalcfg_gui.py:38
+msgid "python-gobject is not installed. Install: pacman -S python-gobject"
+msgstr "python-gobject is not installed. Install: pacman -S python-gobject"
 
-msgid "Error"
-msgstr "Error"
-
-msgid "Done"
-msgstr "Done"
-
+#: rivalcfg_gui.py:45 rivalcfg_gui.py:403
 msgid "rivalcfg is not installed. Install: pip install rivalcfg"
 msgstr "rivalcfg is not installed. Install: pip install rivalcfg"
 
-msgid "Timeout (10s)"
-msgstr "Timeout (10s)"
-
-msgid "Unexpected error"
-msgstr "Unexpected error"
-
-msgid "DPI Settings"
-msgstr "DPI Settings"
-
-msgid "Preset"
-msgstr "Preset"
-
-msgid "APPLY"
-msgstr "APPLY"
-
-msgid "RESET"
-msgstr "RESET"
-
-msgid "Polling Rate"
-msgstr "Polling Rate"
-
-msgid "RGB Lighting"
-msgstr "RGB Lighting"
-
-msgid "COLORS"
-msgstr "COLORS"
-
-msgid "Z1 - Top Strip"
-msgstr "Z1 - Top Strip"
-
-msgid "Z2 - Middle Strip"
-msgstr "Z2 - Middle Strip"
-
-msgid "Z3 - Bottom Strip"
-msgstr "Z3 - Bottom Strip"
-
-msgid "Z4 - Logo"
-msgstr "Z4 - Logo"
-
-msgid "EFFECT"
-msgstr "EFFECT"
-
-msgid "Button Mapping"
-msgstr "Button Mapping"
-
-msgid "BUTTON ASSIGNMENTS"
-msgstr "BUTTON ASSIGNMENTS"
-
-msgid "Left Click (B1)"
-msgstr "Left Click (B1)"
-
-msgid "Right Click (B2)"
-msgstr "Right Click (B2)"
-
-msgid "Middle Click (B3)"
-msgstr "Middle Click (B3)"
-
-msgid "Back (B4)"
-msgstr "Back (B4)"
-
-msgid "Forward (B5)"
-msgstr "Forward (B5)"
-
-msgid "DPI (B6)"
-msgstr "DPI (B6)"
-
-msgid "Scroll Up"
-msgstr "Scroll Up"
-
-msgid "Scroll Down"
-msgstr "Scroll Down"
-
-msgid "Left Click"
-msgstr "Left Click"
-
-msgid "Right Click"
-msgstr "Right Click"
-
-msgid "Middle"
-msgstr "Middle"
-
-msgid "Back"
-msgstr "Back"
-
-msgid "Forward"
-msgstr "Forward"
-
-msgid "DPI"
-msgstr "DPI"
-
-msgid "rival3.png not found."
-msgstr "rival3.png not found."
-
-msgid "Connected Devices"
-msgstr "Connected Devices"
-
-msgid "Click refresh to scan..."
-msgstr "Click refresh to scan..."
-
-msgid "REFRESH"
-msgstr "REFRESH"
-
-msgid "About"
-msgstr "About"
-
-msgid "Linux GUI configuration tool for SteelSeries mice."
-msgstr "Linux GUI configuration tool for SteelSeries mice."
-
-msgid "Built on top of the rivalcfg library."
-msgstr "Built on top of the rivalcfg library."
-
-msgid "Requirements:"
-msgstr "Requirements:"
-
-msgid "GitHub: "
-msgstr "GitHub: "
-
-msgid "CHECK MOUSE"
-msgstr "CHECK MOUSE"
-
-msgid "FIRMWARE VERSION"
-msgstr "FIRMWARE VERSION"
-
-msgid "FACTORY RESET"
-msgstr "FACTORY RESET"
-
-msgid "All settings will be restored to factory defaults. Are you sure?"
-msgstr "All settings will be restored to factory defaults. Are you sure?"
-
-msgid "Factory Reset"
-msgstr "Factory Reset"
-
-msgid "No device found."
-msgstr "No device found."
-
-msgid "Settings"
-msgstr "Settings"
-
-msgid "BEHAVIOR"
-msgstr "BEHAVIOR"
-
-msgid "Startup Minimize"
-msgstr "Startup Minimize"
-
-msgid "Launch minimized to system tray"
-msgstr "Launch minimized to system tray"
-
-msgid "Auto-Apply on Change"
-msgstr "Auto-Apply on Change"
-
-msgid "Apply settings immediately when changed"
-msgstr "Apply settings immediately when changed"
-
-msgid "LANGUAGE"
-msgstr "LANGUAGE"
-
-msgid "Language"
-msgstr "Language"
-
-msgid "Select application display language"
-msgstr "Select application display language"
-
-msgid "APPEARANCE"
-msgstr "APPEARANCE"
-
-msgid "Accent Color"
-msgstr "Accent Color"
-
-msgid "UI highlight and button color"
-msgstr "UI highlight and button color"
-
-msgid "Reset to Default"
-msgstr "Reset to Default"
-
-msgid "POLLING"
-msgstr "POLLING"
-
-msgid "BUTTONS"
-msgstr "BUTTONS"
-
-msgid "DEVICES"
-msgstr "DEVICES"
-
-msgid "SETTINGS"
-msgstr "SETTINGS"
-
-msgid "ABOUT"
-msgstr "ABOUT"
-
-msgid "Starting..."
-msgstr "Starting..."
-
-msgid "Don't save (--no-save)"
-msgstr "Don't save (--no-save)"
-
-msgid "Mouse connected"
-msgstr "Mouse connected"
-
-msgid "Mouse not found"
-msgstr "Mouse not found"
-
+#: rivalcfg_gui.py:84
+#, python-brace-format
+msgid "Failed to save settings: {}"
+msgstr "Failed to save settings: {}"
+
+#: rivalcfg_gui.py:380
 msgid "Processing..."
 msgstr "Processing..."
 
-msgid "1000 Hz  →  1.0 ms"
-msgstr "1000 Hz  →  1.0 ms"
+#: rivalcfg_gui.py:393
+msgid "Unknown error"
+msgstr "Unknown error"
 
+#: rivalcfg_gui.py:394 rivalcfg_gui.py:404 rivalcfg_gui.py:409
+#: rivalcfg_gui.py:414
+msgid "Error"
+msgstr "Error"
+
+#: rivalcfg_gui.py:399
+msgid "Done"
+msgstr "Done"
+
+#: rivalcfg_gui.py:408
+msgid "Timeout (10s)"
+msgstr "Timeout (10s)"
+
+#: rivalcfg_gui.py:413
+msgid "Unexpected error"
+msgstr "Unexpected error"
+
+#: rivalcfg_gui.py:437
+msgid "DPI Settings"
+msgstr "DPI Settings"
+
+#: rivalcfg_gui.py:455
+msgid "Preset"
+msgstr "Preset"
+
+#: rivalcfg_gui.py:493 rivalcfg_gui.py:575 rivalcfg_gui.py:718
+#: rivalcfg_gui.py:1032
+msgid "APPLY"
+msgstr "APPLY"
+
+#: rivalcfg_gui.py:505 rivalcfg_gui.py:1050
+msgid "RESET"
+msgstr "RESET"
+
+#: rivalcfg_gui.py:529
+msgid "Polling Rate"
+msgstr "Polling Rate"
+
+#: rivalcfg_gui.py:547 rivalcfg_gui.py:551
+#, python-brace-format
+msgid "{} Hz"
+msgstr "{} Hz"
+
+#: rivalcfg_gui.py:560 rivalcfg_gui.py:569
+#, python-brace-format
+msgid "{} Hz → {} ms"
+msgstr "{} Hz → {} ms"
+
+#: rivalcfg_gui.py:597
+msgid "RGB Lighting"
+msgstr "RGB Lighting"
+
+#: rivalcfg_gui.py:606
+msgid "COLORS"
+msgstr "COLORS"
+
+#: rivalcfg_gui.py:670
+msgid "Z1 - Top Strip"
+msgstr "Z1 - Top Strip"
+
+#: rivalcfg_gui.py:671
+msgid "Z2 - Middle Strip"
+msgstr "Z2 - Middle Strip"
+
+#: rivalcfg_gui.py:672
+msgid "Z3 - Bottom Strip"
+msgstr "Z3 - Bottom Strip"
+
+#: rivalcfg_gui.py:673
+msgid "Z4 - Logo"
+msgstr "Z4 - Logo"
+
+#: rivalcfg_gui.py:675
+msgid "EFFECT"
+msgstr "EFFECT"
+
+#: rivalcfg_gui.py:682
+msgid "Steady"
+msgstr "Steady"
+
+#: rivalcfg_gui.py:683
+msgid "Breath"
+msgstr "Breath"
+
+#: rivalcfg_gui.py:684
+msgid "Breath (Slow)"
+msgstr "Breath (Slow)"
+
+#: rivalcfg_gui.py:685
+msgid "Breath (Fast)"
+msgstr "Breath (Fast)"
+
+#: rivalcfg_gui.py:686
+msgid "Rainbow Shift"
+msgstr "Rainbow Shift"
+
+#: rivalcfg_gui.py:687
+msgid "Rainbow Breath"
+msgstr "Rainbow Breath"
+
+#: rivalcfg_gui.py:688
+msgid "Disco"
+msgstr "Disco"
+
+#: rivalcfg_gui.py:767
+msgid "Button Mapping"
+msgstr "Button Mapping"
+
+#: rivalcfg_gui.py:773
+msgid "Button 1"
+msgstr "Button 1"
+
+#: rivalcfg_gui.py:774
+msgid "Button 2"
+msgstr "Button 2"
+
+#: rivalcfg_gui.py:775
+msgid "Button 3"
+msgstr "Button 3"
+
+#: rivalcfg_gui.py:776
+msgid "Button 4"
+msgstr "Button 4"
+
+#: rivalcfg_gui.py:777
+msgid "Button 5"
+msgstr "Button 5"
+
+#: rivalcfg_gui.py:778
+msgid "Button 6"
+msgstr "Button 6"
+
+#: rivalcfg_gui.py:779
+msgid "DPI Cycle"
+msgstr "DPI Cycle"
+
+#: rivalcfg_gui.py:780 rivalcfg_gui.py:857
+msgid "Scroll Up"
+msgstr "Scroll Up"
+
+#: rivalcfg_gui.py:781 rivalcfg_gui.py:858
+msgid "Scroll Down"
+msgstr "Scroll Down"
+
+#: rivalcfg_gui.py:782
+msgid "Disable"
+msgstr "Disable"
+
+#: rivalcfg_gui.py:815
+msgid "rival3.png not found."
+msgstr "rival3.png not found."
+
+#: rivalcfg_gui.py:851
+msgid "Left Click"
+msgstr "Left Click"
+
+#: rivalcfg_gui.py:852
+msgid "Right Click"
+msgstr "Right Click"
+
+#: rivalcfg_gui.py:853
+msgid "Middle"
+msgstr "Middle"
+
+#: rivalcfg_gui.py:854
+msgid "Back"
+msgstr "Back"
+
+#: rivalcfg_gui.py:855
+msgid "Forward"
+msgstr "Forward"
+
+#: rivalcfg_gui.py:856 rivalcfg_gui.py:1546 rivalcfg_gui.py:1895
+msgid "DPI"
+msgstr "DPI"
+
+#: rivalcfg_gui.py:1082
+msgid "Connected Devices"
+msgstr "Connected Devices"
+
+#: rivalcfg_gui.py:1098
+msgid "Click refresh to scan..."
+msgstr "Click refresh to scan..."
+
+#: rivalcfg_gui.py:1106
+msgid "REFRESH"
+msgstr "REFRESH"
+
+#: rivalcfg_gui.py:1130
+msgid "About"
+msgstr "About"
+
+#: rivalcfg_gui.py:1140
+msgid "Linux GUI configuration tool for SteelSeries mice."
+msgstr "Linux GUI configuration tool for SteelSeries mice."
+
+#: rivalcfg_gui.py:1141
+msgid "Built on top of the rivalcfg library."
+msgstr "Built on top of the rivalcfg library."
+
+#: rivalcfg_gui.py:1142
+msgid "Requirements:"
+msgstr "Requirements:"
+
+#: rivalcfg_gui.py:1143
+msgid "  pip install rivalcfg"
+msgstr "  pip install rivalcfg"
+
+#: rivalcfg_gui.py:1144
+msgid "  pacman -S python-gobject python-cairo"
+msgstr "  pacman -S python-gobject python-cairo"
+
+#: rivalcfg_gui.py:1155
+msgid "GitHub: "
+msgstr "GitHub: "
+
+#: rivalcfg_gui.py:1161
+msgid "github.com/MrGodzilla38/rivalcfg-gui"
+msgstr "github.com/MrGodzilla38/rivalcfg-gui"
+
+#: rivalcfg_gui.py:1214
+msgid "Settings"
+msgstr "Settings"
+
+#: rivalcfg_gui.py:1224
+msgid "BEHAVIOR"
+msgstr "BEHAVIOR"
+
+#: rivalcfg_gui.py:1235
+msgid "Startup Minimize"
+msgstr "Startup Minimize"
+
+#: rivalcfg_gui.py:1238
+msgid "Launch minimized to system tray"
+msgstr "Launch minimized to system tray"
+
+#: rivalcfg_gui.py:1258
+msgid "Auto-Apply on Change"
+msgstr "Auto-Apply on Change"
+
+#: rivalcfg_gui.py:1261
+msgid "Apply settings immediately when changed"
+msgstr "Apply settings immediately when changed"
+
+#: rivalcfg_gui.py:1280
+msgid "LANGUAGE"
+msgstr "LANGUAGE"
+
+#: rivalcfg_gui.py:1290
+msgid "Language"
+msgstr "Language"
+
+#: rivalcfg_gui.py:1293
+msgid "Select application display language"
+msgstr "Select application display language"
+
+#: rivalcfg_gui.py:1327
+msgid "APPEARANCE"
+msgstr "APPEARANCE"
+
+#: rivalcfg_gui.py:1338
+msgid "Accent Color"
+msgstr "Accent Color"
+
+#: rivalcfg_gui.py:1341
+msgid "UI highlight and button color"
+msgstr "UI highlight and button color"
+
+#: rivalcfg_gui.py:1388
+msgid "Reset to Default"
+msgstr "Reset to Default"
+
+#: rivalcfg_gui.py:1412
+msgid "Mouse Settings"
+msgstr "Mouse Settings"
+
+#: rivalcfg_gui.py:1420
+msgid "CHECK MOUSE"
+msgstr "CHECK MOUSE"
+
+#: rivalcfg_gui.py:1426 rivalcfg_gui.py:1954
+msgid "Mouse connected"
+msgstr "Mouse connected"
+
+#: rivalcfg_gui.py:1428 rivalcfg_gui.py:1956
+msgid "Mouse not found"
+msgstr "Mouse not found"
+
+#: rivalcfg_gui.py:1431
+msgid "No device found."
+msgstr "No device found."
+
+#: rivalcfg_gui.py:1439
+msgid "FIRMWARE VERSION"
+msgstr "FIRMWARE VERSION"
+
+#: rivalcfg_gui.py:1445
+#, python-format
 msgid "Firmware: %s"
 msgstr "Firmware: %s"
 
+#: rivalcfg_gui.py:1447 rivalcfg_gui.py:1470
 msgid "Mouse not connected"
 msgstr "Mouse not connected"
 
-msgid "Mouse Settings"
-msgstr "Mouse Settings"
+#: rivalcfg_gui.py:1453
+msgid "FACTORY RESET"
+msgstr "FACTORY RESET"
+
+#: rivalcfg_gui.py:1462
+msgid "All settings will be restored to factory defaults. Are you sure?"
+msgstr "All settings will be restored to factory defaults. Are you sure?"
+
+#: rivalcfg_gui.py:1464
+msgid "Factory Reset"
+msgstr "Factory Reset"
+
+#: rivalcfg_gui.py:1547 rivalcfg_gui.py:1896
+msgid "POLLING"
+msgstr "POLLING"
+
+#: rivalcfg_gui.py:1548 rivalcfg_gui.py:1897
+msgid "RGB"
+msgstr "RGB"
+
+#: rivalcfg_gui.py:1549 rivalcfg_gui.py:1898
+msgid "BUTTONS"
+msgstr "BUTTONS"
+
+#: rivalcfg_gui.py:1550 rivalcfg_gui.py:1899
+msgid "DEVICES"
+msgstr "DEVICES"
+
+#: rivalcfg_gui.py:1551 rivalcfg_gui.py:1900
+msgid "SETTINGS"
+msgstr "SETTINGS"
+
+#: rivalcfg_gui.py:1552 rivalcfg_gui.py:1901
+msgid "ABOUT"
+msgstr "ABOUT"
+
+#: rivalcfg_gui.py:1689
+msgid "Cannot delete the last profile."
+msgstr "Cannot delete the last profile."
+
+#: rivalcfg_gui.py:1699
+#, python-format
+msgid "Delete profile \"%s\"?"
+msgstr "Delete profile \"%s\"?"
+
+#: rivalcfg_gui.py:1701
+msgid "Delete Profile"
+msgstr "Delete Profile"
+
+#: rivalcfg_gui.py:1719
+msgid "Rename Profile"
+msgstr "Rename Profile"
+
+#: rivalcfg_gui.py:1724 rivalcfg_gui.py:1809
+msgid "Cancel"
+msgstr "Cancel"
+
+#: rivalcfg_gui.py:1725 rivalcfg_gui.py:1810
+msgid "OK"
+msgstr "OK"
+
+#: rivalcfg_gui.py:1733 rivalcfg_gui.py:1818
+msgid "Profile name:"
+msgstr "Profile name:"
+
+#: rivalcfg_gui.py:1751
+#, python-format
+msgid "Could not rename to \"%s\". Name may already exist."
+msgstr "Could not rename to \"%s\". Name may already exist."
+
+#: rivalcfg_gui.py:1804
+msgid "New Profile"
+msgstr "New Profile"
+
+#: rivalcfg_gui.py:1839
+msgid "PROFILES"
+msgstr "PROFILES"
+
+#: rivalcfg_gui.py:1936
+msgid "Starting..."
+msgstr "Starting..."
+
+#: rivalcfg_gui.py:1942
+msgid "Don't save (--no-save)"
+msgstr "Don't save (--no-save)"
+
+#~ msgid "BUTTON ASSIGNMENTS"
+#~ msgstr "BUTTON ASSIGNMENTS"
+
+#~ msgid "Left Click (B1)"
+#~ msgstr "Left Click (B1)"
+
+#~ msgid "Right Click (B2)"
+#~ msgstr "Right Click (B2)"
+
+#~ msgid "Middle Click (B3)"
+#~ msgstr "Middle Click (B3)"
+
+#~ msgid "Back (B4)"
+#~ msgstr "Back (B4)"
+
+#~ msgid "Forward (B5)"
+#~ msgstr "Forward (B5)"
+
+#~ msgid "DPI (B6)"
+#~ msgstr "DPI (B6)"
