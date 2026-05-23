@@ -134,6 +134,10 @@ window {
     border-right: 1px solid #1e1e2e;
 }
 
+.sidebar combobox {
+    min-width: 0;
+}
+
 .nav-btn {
     background: transparent;
     border: none;
@@ -1523,17 +1527,26 @@ def create_window_content(window):
     vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
     window.add(vbox)
 
-    main_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-    vbox.pack_start(main_box, True, True, 0)
+    content_grid = Gtk.Grid()
+    content_grid.set_column_spacing(0)
+    content_grid.set_row_spacing(0)
+    content_grid.set_column_homogeneous(False)
+    content_grid.set_vexpand(True)
+    content_grid.set_hexpand(True)
+    vbox.pack_start(content_grid, True, True, 0)
 
     sidebar = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
-    sidebar.set_size_request(200, -1)
+    sidebar.set_size_request(180, -1)
     sidebar.get_style_context().add_class("sidebar")
     sidebar.set_margin_top(16)
     sidebar.set_margin_bottom(16)
     sidebar.set_margin_start(16)
     sidebar.set_margin_end(16)
-    main_box.pack_start(sidebar, False, False, 0)
+    sidebar.set_vexpand(True)
+    sidebar.set_hexpand(False)
+    sidebar.set_halign(Gtk.Align.START)
+
+    content_grid.attach(sidebar, 0, 0, 1, 1)
 
     icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logo.png")
     if os.path.exists(icon_path):
@@ -1545,7 +1558,9 @@ def create_window_content(window):
     brand = Gtk.Label(label="RivalCFG GUI")
     brand.get_style_context().add_class("page-title")
     brand.set_margin_bottom(20)
-    sidebar.pack_start(brand, False, False, 0)
+    brand.set_halign(Gtk.Align.CENTER)
+    brand.set_hexpand(True)
+    sidebar.pack_start(brand, True, False, 0)
 
     def refresh_profile_combo():
         combo = app_state.get("profile_combo")
@@ -1627,6 +1642,8 @@ def create_window_content(window):
 
     profile_section = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
     profile_section.set_margin_bottom(16)
+    profile_section.set_hexpand(True)
+    profile_section.set_halign(Gtk.Align.FILL)
 
     profile_title = Gtk.Label(label=_("PROFILES"))
     profile_title.get_style_context().add_class("card-title")
@@ -1635,14 +1652,15 @@ def create_window_content(window):
 
     combo_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=4)
     profile_combo = Gtk.ComboBoxText()
-    profile_combo.set_size_request(100, -1)
+    profile_combo.set_hexpand(True)
+    profile_combo.set_halign(Gtk.Align.FILL)
     combo_row.pack_start(profile_combo, True, True, 0)
     new_btn = Gtk.Button(label="+")
     new_btn.set_size_request(32, -1)
     new_btn.get_style_context().add_class("reset-btn")
     new_btn.connect("clicked", on_new_profile)
     combo_row.pack_start(new_btn, False, False, 0)
-    profile_section.pack_start(combo_row, False, False, 0)
+    profile_section.pack_start(combo_row, True, True, 0)
 
     action_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=4)
     save_btn = Gtk.Button(label=_("Save"))
@@ -1655,16 +1673,18 @@ def create_window_content(window):
     delete_btn.set_hexpand(True)
     delete_btn.connect("clicked", on_delete_profile)
     action_row.pack_start(delete_btn, True, True, 0)
-    profile_section.pack_start(action_row, False, False, 0)
+    profile_section.pack_start(action_row, True, True, 0)
 
-    sidebar.pack_start(profile_section, False, False, 0)
+    sidebar.pack_start(profile_section, True, True, 0)
     app_state["profile_combo"] = profile_combo
     profile_combo.connect("changed", on_profile_changed)
     refresh_profile_combo()
 
     stack = Gtk.Stack()
     stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
-    main_box.pack_start(stack, True, True, 0)
+    stack.set_hexpand(True)
+    stack.set_vexpand(True)
+    content_grid.attach(stack, 1, 0, 1, 1)
     app_state["stack"] = stack
 
     pages = [
@@ -1693,8 +1713,10 @@ def create_window_content(window):
         btn.get_style_context().add_class("nav-btn")
         if i == 0:
             btn.get_style_context().add_class("nav-active")
+        btn.set_hexpand(True)
+        btn.set_halign(Gtk.Align.FILL)
         btn.connect("clicked", on_nav_clicked, name)
-        sidebar.pack_start(btn, False, False, 0)
+        sidebar.pack_start(btn, True, True, 0)
         app_state["nav_buttons"].append(btn)
 
     status_bar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
