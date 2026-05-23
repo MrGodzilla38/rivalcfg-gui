@@ -865,6 +865,12 @@ def create_buttons_page():
     lines_area.connect("button-press-event", on_button_press)
     lines_area.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
 
+    overlay.connect("button-press-event", lambda w, e: popover.popdown() if popover.is_visible() else False)
+    overlay.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
+
+    win = app_state["window"]
+    win.connect("button-press-event", lambda w, e: popover.popdown() if popover.is_visible() else False)
+
     overlay.add_overlay(lines_area)
     app_state["redraw_buttons"] = lambda: lines_area.queue_draw()
 
