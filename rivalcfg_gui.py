@@ -138,6 +138,32 @@ window {
     min-width: 0;
 }
 
+.profile-selector {
+    background: #0f0f1a;
+    border: 1px solid #2a2a40;
+    border-radius: 4px;
+    padding: 6px 10px;
+    min-height: 28px;
+}
+
+.profile-selector:hover {
+    border-color: #3a3a55;
+}
+
+.profile-selector label {
+    color: #ffffff;
+    font-size: 13px;
+}
+
+.profile-menu menuitem {
+    padding: 8px 20px;
+    color: #ccccdd;
+}
+
+.profile-menu menuitem:hover {
+    background-color: #1a1a2e;
+}
+
 .nav-btn {
     background: transparent;
     border: none;
@@ -1562,31 +1588,40 @@ def create_window_content(window):
     brand.set_hexpand(True)
     sidebar.pack_start(brand, True, False, 0)
 
-    def refresh_profile_combo():
-        combo = app_state.get("profile_combo")
-        if not combo:
-            return
-        active = app_state["settings"].get("active_profile", "Default")
-        combo.remove_all()
-        profiles = list_profiles()
-        for p in profiles:
-            combo.append_text(p)
-        if active in profiles:
-            combo.set_active(profiles.index(active))
-        elif profiles:
-            combo.set_active(0)
+    def update_profile_selector_label(name):
+        label = app_state.get("profile_label")
+        if label:
+            label.set_text(name)
 
-    def on_profile_changed(cmb):
+    def select_profile(name):
         if app_state.get("_loading_profile"):
-            return
-        name = cmb.get_active_text()
-        if not name:
             return
         profile_data = load_profile_data(name)
         if profile_data:
             apply_profile_to_ui(profile_data)
         app_state["settings"]["active_profile"] = name
         save_settings()
+        update_profile_selector_label(name)
+
+    def refresh_profile_selector():
+        menu = app_state.get("profile_menu")
+        if not menu:
+            return
+        active = app_state["settings"].get("active_profile", "Default")
+        profiles = list_profiles()
+        for child in menu.get_children():
+            menu.remove(child)
+        for p in profiles:
+            item = Gtk.MenuItem(label=p)
+            item.connect("activate", lambda _w, profile_name=p: select_profile(profile_name))
+            menu.append(item)
+        menu.show_all()
+        if active in profiles:
+            update_profile_selector_label(active)
+        elif profiles:
+            select_profile(profiles[0])
+        else:
+            update_profile_selector_label("Default")
 
     def on_new_profile(btn):
         dialog = Gtk.Dialog(
@@ -1615,15 +1650,15 @@ def create_window_content(window):
         dialog.destroy()
         if response == Gtk.ResponseType.OK and name:
             save_profile(name)
-            refresh_profile_combo()
+            refresh_profile_selector()
 
     def on_save_profile(btn):
-        name = app_state["profile_combo"].get_active_text()
+        name = app_state["settings"].get("active_profile", "Default")
         if name:
             save_profile(name)
 
     def on_delete_profile(btn):
-        name = app_state["profile_combo"].get_active_text()
+        name = app_state["settings"].get("active_profile", "Default")
         if not name:
             return
         dialog = Gtk.MessageDialog(
@@ -1638,7 +1673,7 @@ def create_window_content(window):
         dialog.destroy()
         if response == Gtk.ResponseType.OK:
             delete_profile_file(name)
-            refresh_profile_combo()
+            refresh_profile_selector()
 
     profile_section = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
     profile_section.set_margin_bottom(16)
@@ -1651,10 +1686,24 @@ def create_window_content(window):
     profile_section.pack_start(profile_title, False, False, 0)
 
     combo_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=4)
-    profile_combo = Gtk.ComboBoxText()
-    profile_combo.set_hexpand(True)
-    profile_combo.set_halign(Gtk.Align.FILL)
-    combo_row.pack_start(profile_combo, True, True, 0)
+    profile_menu = Gtk.Menu()
+    profile_menu.get_style_context().add_class("profile-menu")
+    profile_menu_btn = Gtk.MenuButton()
+    profile_menu_btn.set_popup(profile_menu)
+    profile_menu_btn.set_hexpand(True)
+    profile_menu_btn.set_halign(Gtk.Align.FILL)
+    profile_menu_btn.set_relief(Gtk.ReliefStyle.NONE)
+    profile_menu_btn.get_style_context().add_class("profile-selector")
+    profile_selector_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+    profile_label = Gtk.Label(label=app_state["settings"].get("active_profile", "Default"))
+    profile_label.set_halign(Gtk.Align.START)
+    profile_label.set_hexpand(True)
+    profile_arrow = Gtk.Label(label="▾")
+    profile_arrow.get_style_context().add_class("profile-arrow")
+    profile_selector_box.pack_start(profile_label, True, True, 0)
+    profile_selector_box.pack_start(profile_arrow, False, False, 0)
+    profile_menu_btn.add(profile_selector_box)
+    combo_row.pack_start(profile_menu_btn, True, True, 0)
     new_btn = Gtk.Button(label="+")
     new_btn.set_size_request(32, -1)
     new_btn.get_style_context().add_class("reset-btn")
@@ -1676,9 +1725,10 @@ def create_window_content(window):
     profile_section.pack_start(action_row, True, True, 0)
 
     sidebar.pack_start(profile_section, True, True, 0)
-    app_state["profile_combo"] = profile_combo
-    profile_combo.connect("changed", on_profile_changed)
-    refresh_profile_combo()
+    app_state["profile_menu"] = profile_menu
+    app_state["profile_menu_btn"] = profile_menu_btn
+    app_state["profile_label"] = profile_label
+    refresh_profile_selector()
 
     stack = Gtk.Stack()
     stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
