@@ -659,7 +659,7 @@ def create_buttons_page():
     overlay.set_vexpand(True)
 
     if os.path.exists(img_path):
-        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(img_path, 320, 320, True)
+        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(img_path, 400, 400, True)
         image_widget = Gtk.Image.new_from_pixbuf(pixbuf)
         image_widget.set_halign(Gtk.Align.CENTER)
         image_widget.set_valign(Gtk.Align.CENTER)
@@ -684,20 +684,20 @@ def create_buttons_page():
         cr.set_source_rgba(0, 0, 0, 0)
         cr.paint()
 
-        img_w = 320
-        img_h = 320
+        img_w = 400
+        img_h = 400
         img_x = (w - img_w) / 2
         img_y = (h - img_h) / 2
 
         btn_positions = {
-            "button1": (img_x + 125, img_y + 100),
-            "button2": (img_x + 195, img_y + 100),
-            "button3": (img_x + 160, img_y + 98),
-            "button4": (img_x + 115, img_y + 185),
-            "button5": (img_x + 115, img_y + 155),
-            "button6": (img_x + 160, img_y + 140),
-            "scrollup": (img_x + 160, img_y + 90),
-            "scrolldown": (img_x + 160, img_y + 110),
+            "button1": (img_x + 156, img_y + 125),
+            "button2": (img_x + 244, img_y + 125),
+            "button3": (img_x + 200, img_y + 123),
+            "button4": (img_x + 144, img_y + 231),
+            "button5": (img_x + 144, img_y + 194),
+            "button6": (img_x + 200, img_y + 175),
+            "scrollup": (img_x + 200, img_y + 113),
+            "scrolldown": (img_x + 200, img_y + 138),
         }
 
         btn_display_names = {
@@ -715,16 +715,16 @@ def create_buttons_page():
         lh = 24
 
         # Middle - mouse'un tam üst ortasında
-        lx_middle = img_x + 160 - lw // 2
+        lx_middle = img_x + 200 - lw // 2
         ly_middle = img_y - 10
 
         # Scroll Up - Middle'nin solunda, hafif aşağıda
-        lx_scrollup = lx_middle - 120
-        ly_scrollup = ly_middle + 30
+        lx_scrollup = lx_middle - 150
+        ly_scrollup = ly_middle + 38
 
         # Scroll Down - Middle'nin sağında, hafif aşağıda
-        lx_scrolldown = lx_middle + 120
-        ly_scrolldown = ly_middle + 30
+        lx_scrolldown = lx_middle + 150
+        ly_scrolldown = ly_middle + 70
 
         # Her kutunun x pozisyonu
         label_xs = {
@@ -742,11 +742,11 @@ def create_buttons_page():
             "button3": ly_middle,
             "scrollup": ly_scrollup,
             "scrolldown": ly_scrolldown,
-            "button1": img_y + 80,
-            "button5": img_y + 130,
-            "button4": img_y + 180,
-            "button6": img_y + 130,
-            "button2": img_y + 80,
+            "button1": img_y + 100,
+            "button5": img_y + 165,
+            "button4": img_y + 225,
+            "button6": img_y + 165,
+            "button2": img_y + 100,
         }
 
         box_hit_areas.clear()
