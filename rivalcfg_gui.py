@@ -38,6 +38,7 @@ DEFAULT_SETTINGS = {
     "auto_apply": False,
     "accent_color": "#e84545",
     "language": "en",
+    "active_profile": "Default",
 }
 
 def setup_gettext(lang=None):
@@ -80,6 +81,48 @@ def save_settings():
             json.dump(app_state["settings"], f, indent=4)
     except Exception as e:
         print(f"Failed to save settings: {e}")
+
+PROFILES_DIR = os.path.join(SETTINGS_DIR, "profiles")
+
+def ensure_profiles_dir():
+    os.makedirs(PROFILES_DIR, exist_ok=True)
+
+def list_profiles():
+    ensure_profiles_dir()
+    profiles = []
+    for f in os.listdir(PROFILES_DIR):
+        if f.endswith(".json"):
+            profiles.append(f[:-5])
+    return sorted(profiles) if profiles else ["Default"]
+
+def save_profile(name):
+    ensure_profiles_dir()
+    profile = {
+        "dpi_values": app_state.get("dpi_values", [400, 800, 1600, 3200, 6400]),
+        "polling_hz": app_state.get("polling_hz", 1000),
+        "z1_hex": app_state.get("z1_hex", "ff0000"),
+        "z2_hex": app_state.get("z2_hex", "00ff00"),
+        "z3_hex": app_state.get("z3_hex", "0000ff"),
+        "z4_hex": app_state.get("z4_hex", "aa00ff"),
+        "selected_effect": app_state.get("selected_effect", "steady"),
+        "button_mapping": app_state.get("button_mapping", {}),
+    }
+    path = os.path.join(PROFILES_DIR, f"{name}.json")
+    with open(path, "w") as f:
+        json.dump(profile, f, indent=4)
+
+def load_profile_data(name):
+    ensure_profiles_dir()
+    path = os.path.join(PROFILES_DIR, f"{name}.json")
+    if not os.path.exists(path):
+        return None
+    with open(path, "r") as f:
+        return json.load(f)
+
+def delete_profile_file(name):
+    path = os.path.join(PROFILES_DIR, f"{name}.json")
+    if os.path.exists(path):
+        os.remove(path)
 
 CSS = """
 window {
@@ -350,7 +393,7 @@ def create_dpi_page():
             v = int(sc.get_value())
             vl.set_text(str(v))
             app_state["dpi_values"][idx] = v
-            if app_state["settings"].get("auto_apply"):
+            if not app_state.get("_loading_profile") and app_state["settings"].get("auto_apply"):
                 vals = app_state["dpi_values"]
                 arg = ",".join(str(val) for val in vals)
                 run_rivalcfg(["--sensitivity", arg])
@@ -410,6 +453,7 @@ def create_polling_page():
 
     rates = [125, 250, 500, 1000]
     app_state["polling_hz"] = 1000
+    app_state["polling_radios"] = {}
     group = None
 
     radio_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
@@ -423,12 +467,14 @@ def create_polling_page():
             rb = Gtk.RadioButton(label=f"{hz} Hz", group=group)
             rb.set_active(hz == 1000)
 
+        app_state["polling_radios"][hz] = rb
+
         def on_polling_toggled(button, val=hz):
             if button.get_active():
                 app_state["polling_hz"] = val
                 ms = 1000.0 / val
                 app_state["polling_display"].set_text(f"{val} Hz  →  {ms:.1f} ms")
-                if app_state["settings"].get("auto_apply"):
+                if not app_state.get("_loading_profile") and app_state["settings"].get("auto_apply"):
                     run_rivalcfg(["--polling-rate", str(val)])
 
         rb.connect("toggled", on_polling_toggled)
@@ -481,6 +527,8 @@ def create_rgb_page():
     app_state["z2_hex"] = "00ff00"
     app_state["z3_hex"] = "0000ff"
     app_state["z4_hex"] = "aa00ff"
+    app_state["color_buttons"] = {}
+    app_state["color_previews"] = {}
 
     def make_color_row(label_text, default_hex, key):
         row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
@@ -498,11 +546,13 @@ def create_rgb_page():
         color_btn.set_rgba(rgba)
         color_btn.set_size_request(60, -1)
         row.pack_start(color_btn, False, False, 0)
+        app_state["color_buttons"][key] = color_btn
 
         preview = Gtk.DrawingArea()
         preview.set_size_request(40, 24)
         preview.get_style_context().add_class("card")
         row.pack_start(preview, False, False, 0)
+        app_state["color_previews"][key] = preview
 
         def on_draw(widget, cr):
             h = app_state[key]
@@ -519,7 +569,7 @@ def create_rgb_page():
             col = button.get_rgba()
             app_state[key] = rgba_to_hex(col)
             preview.queue_draw()
-            if app_state["settings"].get("auto_apply"):
+            if not app_state.get("_loading_profile") and app_state["settings"].get("auto_apply"):
                 color_map = {
                     "z1_hex": "--strip-top-color",
                     "z2_hex": "--strip-middle-color",
@@ -553,6 +603,7 @@ def create_rgb_page():
         ("disco", "disco")
     ]
     app_state["selected_effect"] = "steady"
+    app_state["effect_radios"] = {}
     eff_group = None
 
     eff_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
@@ -566,10 +617,12 @@ def create_rgb_page():
             rb = Gtk.RadioButton(label=name, group=eff_group)
             rb.set_active(value == "steady")
 
+        app_state["effect_radios"][value] = rb
+
         def on_effect_toggled(button, val=value):
             if button.get_active():
                 app_state["selected_effect"] = val
-                if app_state["settings"].get("auto_apply"):
+                if not app_state.get("_loading_profile") and app_state["settings"].get("auto_apply"):
                     run_rivalcfg(["--light-effect", val])
 
         rb.connect("toggled", on_effect_toggled)
@@ -1021,6 +1074,40 @@ def create_about_page():
     return page
 
 
+def apply_profile_to_ui(profile):
+    app_state["_loading_profile"] = True
+
+    if "dpi_values" in profile and "dpi_scales" in app_state:
+        for i, val in enumerate(profile["dpi_values"]):
+            if i < len(app_state["dpi_scales"]):
+                app_state["dpi_scales"][i].set_value(val)
+
+    if "polling_hz" in profile and "polling_radios" in app_state:
+        for hz, rb in app_state["polling_radios"].items():
+            rb.set_active(hz == profile["polling_hz"])
+
+    for key in ["z1_hex", "z2_hex", "z3_hex", "z4_hex"]:
+        if key in profile:
+            app_state[key] = profile[key]
+            if key in app_state.get("color_buttons", {}):
+                rgba = Gdk.RGBA()
+                rgba.parse(f"#{profile[key]}")
+                app_state["color_buttons"][key].set_rgba(rgba)
+            if key in app_state.get("color_previews", {}):
+                app_state["color_previews"][key].queue_draw()
+
+    if "selected_effect" in profile and "effect_radios" in app_state:
+        for effect, rb in app_state["effect_radios"].items():
+            rb.set_active(effect == profile["selected_effect"])
+
+    if "button_mapping" in profile:
+        app_state["button_mapping"].update(profile["button_mapping"])
+        if "redraw_buttons" in app_state:
+            app_state["redraw_buttons"]()
+
+    app_state["_loading_profile"] = False
+
+
 def create_settings_page():
     """Create Settings page."""
     page = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
@@ -1348,6 +1435,11 @@ def rebuild_ui():
     app_state["is_rebuild"] = True
     create_window_content(window)
 
+    active = app_state["settings"].get("active_profile", "Default")
+    profile_data = load_profile_data(active)
+    if profile_data:
+        apply_profile_to_ui(profile_data)
+
     window.show_all()
 
     if app_state["settings"]["startup_minimize"]:
@@ -1410,6 +1502,16 @@ def create_window():
 
     create_window_content(window)
 
+    active = app_state["settings"].get("active_profile", "Default")
+    profiles = list_profiles()
+    if active not in profiles:
+        active = "Default"
+        app_state["settings"]["active_profile"] = "Default"
+        save_settings()
+    profile_data = load_profile_data(active)
+    if profile_data:
+        apply_profile_to_ui(profile_data)
+
     window.show_all()
 
     if app_state["settings"]["startup_minimize"]:
@@ -1425,7 +1527,7 @@ def create_window_content(window):
     vbox.pack_start(main_box, True, True, 0)
 
     sidebar = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
-    sidebar.set_size_request(180, -1)
+    sidebar.set_size_request(200, -1)
     sidebar.get_style_context().add_class("sidebar")
     sidebar.set_margin_top(16)
     sidebar.set_margin_bottom(16)
@@ -1444,6 +1546,121 @@ def create_window_content(window):
     brand.get_style_context().add_class("page-title")
     brand.set_margin_bottom(20)
     sidebar.pack_start(brand, False, False, 0)
+
+    def refresh_profile_combo():
+        combo = app_state.get("profile_combo")
+        if not combo:
+            return
+        active = app_state["settings"].get("active_profile", "Default")
+        combo.remove_all()
+        profiles = list_profiles()
+        for p in profiles:
+            combo.append_text(p)
+        if active in profiles:
+            combo.set_active(profiles.index(active))
+        elif profiles:
+            combo.set_active(0)
+
+    def on_profile_changed(cmb):
+        if app_state.get("_loading_profile"):
+            return
+        name = cmb.get_active_text()
+        if not name:
+            return
+        profile_data = load_profile_data(name)
+        if profile_data:
+            apply_profile_to_ui(profile_data)
+        app_state["settings"]["active_profile"] = name
+        save_settings()
+
+    def on_new_profile(btn):
+        dialog = Gtk.Dialog(
+            title=_("New Profile"),
+            parent=app_state["window"],
+            flags=Gtk.DialogFlags.MODAL,
+        )
+        dialog.add_buttons(
+            _("Cancel"), Gtk.ResponseType.CANCEL,
+            _("OK"), Gtk.ResponseType.OK,
+        )
+        dialog.set_default_size(300, 130)
+        box = dialog.get_content_area()
+        box.set_margin_start(12)
+        box.set_margin_end(12)
+        box.set_margin_top(12)
+        box.set_margin_bottom(12)
+        lbl = Gtk.Label(label=_("Profile name:"))
+        lbl.set_halign(Gtk.Align.START)
+        box.pack_start(lbl, False, False, 4)
+        entry = Gtk.Entry()
+        box.pack_start(entry, False, False, 4)
+        dialog.show_all()
+        response = dialog.run()
+        name = entry.get_text().strip()
+        dialog.destroy()
+        if response == Gtk.ResponseType.OK and name:
+            save_profile(name)
+            refresh_profile_combo()
+
+    def on_save_profile(btn):
+        name = app_state["profile_combo"].get_active_text()
+        if name:
+            save_profile(name)
+
+    def on_delete_profile(btn):
+        name = app_state["profile_combo"].get_active_text()
+        if not name:
+            return
+        dialog = Gtk.MessageDialog(
+            parent=app_state["window"],
+            flags=Gtk.DialogFlags.MODAL,
+            type=Gtk.MessageType.WARNING,
+            buttons=Gtk.ButtonsType.OK_CANCEL,
+            message_format=_('Delete profile "%s"?') % name,
+        )
+        dialog.set_title(_("Delete Profile"))
+        response = dialog.run()
+        dialog.destroy()
+        if response == Gtk.ResponseType.OK:
+            delete_profile_file(name)
+            refresh_profile_combo()
+
+    profile_section = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+    profile_section.set_margin_bottom(16)
+
+    profile_title = Gtk.Label(label=_("PROFILES"))
+    profile_title.get_style_context().add_class("card-title")
+    profile_title.set_halign(Gtk.Align.START)
+    profile_section.pack_start(profile_title, False, False, 0)
+
+    combo_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=4)
+    profile_combo = Gtk.ComboBoxText()
+    profile_combo.set_size_request(100, -1)
+    combo_row.pack_start(profile_combo, True, True, 0)
+    new_btn = Gtk.Button(label="+")
+    new_btn.set_size_request(32, -1)
+    new_btn.get_style_context().add_class("reset-btn")
+    new_btn.connect("clicked", on_new_profile)
+    combo_row.pack_start(new_btn, False, False, 0)
+    profile_section.pack_start(combo_row, False, False, 0)
+
+    action_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=4)
+    save_btn = Gtk.Button(label=_("Save"))
+    save_btn.get_style_context().add_class("reset-btn")
+    save_btn.set_hexpand(True)
+    save_btn.connect("clicked", on_save_profile)
+    action_row.pack_start(save_btn, True, True, 0)
+    delete_btn = Gtk.Button(label=_("Delete"))
+    delete_btn.get_style_context().add_class("reset-btn")
+    delete_btn.set_hexpand(True)
+    delete_btn.connect("clicked", on_delete_profile)
+    action_row.pack_start(delete_btn, True, True, 0)
+    profile_section.pack_start(action_row, False, False, 0)
+
+    sidebar.pack_start(profile_section, False, False, 0)
+    app_state["profile_combo"] = profile_combo
+    profile_combo.connect("changed", on_profile_changed)
+    refresh_profile_combo()
 
     stack = Gtk.Stack()
     stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
@@ -1522,3 +1739,4 @@ def main():
 
 
 main()
+am
