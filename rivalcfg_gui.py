@@ -124,6 +124,22 @@ def delete_profile_file(name):
     if os.path.exists(path):
         os.remove(path)
 
+def rename_profile_file(old_name, new_name):
+    if not new_name or old_name == new_name:
+        return False
+    ensure_profiles_dir()
+    old_path = os.path.join(PROFILES_DIR, f"{old_name}.json")
+    new_path = os.path.join(PROFILES_DIR, f"{new_name}.json")
+    if not os.path.exists(old_path) or os.path.exists(new_path):
+        return False
+    os.rename(old_path, new_path)
+    return True
+
+def save_active_profile():
+    name = app_state.get("settings", {}).get("active_profile", "Default")
+    if name:
+        save_profile(name)
+
 CSS = """
 window {
     background: #0a0a0f;
@@ -155,13 +171,49 @@ window {
     font-size: 13px;
 }
 
-.profile-menu menuitem {
-    padding: 8px 20px;
+.profile-popover {
+    background: #0f0f1a;
+    border: 1px solid #2a2a40;
+    padding: 4px 0;
+}
+
+.profile-popover-row {
+    padding: 2px 4px;
+}
+
+.profile-popover-row:hover {
+    background-color: #1a1a2e;
+}
+
+.profile-menu-select {
+    background: transparent;
+    border: none;
+    color: #ccccdd;
+    font-size: 13px;
+    padding: 6px 8px;
+}
+
+.profile-menu-select:hover {
+    color: #ffffff;
+}
+
+.profile-menu-action {
+    background: transparent;
+    border: none;
+    color: #888899;
+    font-size: 14px;
+    padding: 4px 6px;
+    min-width: 28px;
+    min-height: 28px;
+}
+
+.profile-menu-action:hover {
+    background: #1a1a2e;
     color: #ccccdd;
 }
 
-.profile-menu menuitem:hover {
-    background-color: #1a1a2e;
+.profile-menu-delete:hover {
+    color: #e84545;
 }
 
 .nav-btn {
@@ -441,6 +493,7 @@ def create_dpi_page():
     apply_btn.get_style_context().add_class("apply-btn")
 
     def on_apply_dpi(btn):
+        save_active_profile()
         vals = app_state["dpi_values"]
         arg = ",".join(str(v) for v in vals)
         run_rivalcfg(["--sensitivity", arg])
@@ -523,6 +576,7 @@ def create_polling_page():
     apply_btn.set_halign(Gtk.Align.START)
 
     def on_apply_polling(btn):
+        save_active_profile()
         run_rivalcfg(["--polling-rate", str(app_state["polling_hz"])])
 
     apply_btn.connect("clicked", on_apply_polling)
@@ -666,6 +720,7 @@ def create_rgb_page():
     apply_btn.set_margin_top(8)
 
     def on_apply_rgb(btn):
+        save_active_profile()
         z1 = app_state["z1_hex"]
         z2 = app_state["z2_hex"]
         z3 = app_state["z3_hex"]
@@ -969,6 +1024,7 @@ def create_buttons_page():
     apply_btn.get_style_context().add_class("apply-btn")
 
     def on_apply_buttons(btn):
+        save_active_profile()
         m = app_state["button_mapping"]
         arg = (
             f"buttons(button1={m['button1']}; button2={m['button2']}; "
@@ -1593,7 +1649,12 @@ def create_window_content(window):
         if label:
             label.set_text(name)
 
-    def select_profile(name):
+    def close_profile_popover():
+        popover = app_state.get("profile_popover")
+        if popover:
+            popover.popdown()
+
+    def select_profile(name, close_popover=False):
         if app_state.get("_loading_profile"):
             return
         profile_data = load_profile_data(name)
@@ -1602,20 +1663,126 @@ def create_window_content(window):
         app_state["settings"]["active_profile"] = name
         save_settings()
         update_profile_selector_label(name)
+        if close_popover:
+            close_profile_popover()
+
+    def on_delete_profile_named(name):
+        if not name:
+            return
+        close_profile_popover()
+        profiles = list_profiles()
+        if len(profiles) <= 1:
+            dialog = Gtk.MessageDialog(
+                parent=app_state["window"],
+                flags=Gtk.DialogFlags.MODAL,
+                type=Gtk.MessageType.INFO,
+                buttons=Gtk.ButtonsType.OK,
+                message_format=_("Cannot delete the last profile."),
+            )
+            dialog.run()
+            dialog.destroy()
+            return
+        dialog = Gtk.MessageDialog(
+            parent=app_state["window"],
+            flags=Gtk.DialogFlags.MODAL,
+            type=Gtk.MessageType.WARNING,
+            buttons=Gtk.ButtonsType.OK_CANCEL,
+            message_format=_('Delete profile "%s"?') % name,
+        )
+        dialog.set_title(_("Delete Profile"))
+        response = dialog.run()
+        dialog.destroy()
+        if response != Gtk.ResponseType.OK:
+            return
+        was_active = app_state["settings"].get("active_profile") == name
+        delete_profile_file(name)
+        refresh_profile_selector()
+        if was_active:
+            remaining = list_profiles()
+            if remaining:
+                select_profile(remaining[0])
+
+    def on_rename_profile_named(name):
+        if not name:
+            return
+        close_profile_popover()
+        dialog = Gtk.Dialog(
+            title=_("Rename Profile"),
+            parent=app_state["window"],
+            flags=Gtk.DialogFlags.MODAL,
+        )
+        dialog.add_buttons(
+            _("Cancel"), Gtk.ResponseType.CANCEL,
+            _("OK"), Gtk.ResponseType.OK,
+        )
+        dialog.set_default_size(300, 130)
+        box = dialog.get_content_area()
+        box.set_margin_start(12)
+        box.set_margin_end(12)
+        box.set_margin_top(12)
+        box.set_margin_bottom(12)
+        lbl = Gtk.Label(label=_("Profile name:"))
+        lbl.set_halign(Gtk.Align.START)
+        box.pack_start(lbl, False, False, 4)
+        entry = Gtk.Entry()
+        entry.set_text(name)
+        box.pack_start(entry, False, False, 4)
+        dialog.show_all()
+        response = dialog.run()
+        new_name = entry.get_text().strip()
+        dialog.destroy()
+        if response != Gtk.ResponseType.OK or not new_name or new_name == name:
+            return
+        if not rename_profile_file(name, new_name):
+            err = Gtk.MessageDialog(
+                parent=app_state["window"],
+                flags=Gtk.DialogFlags.MODAL,
+                type=Gtk.MessageType.ERROR,
+                buttons=Gtk.ButtonsType.OK,
+                message_format=_('Could not rename to "%s". Name may already exist.') % new_name,
+            )
+            err.run()
+            err.destroy()
+            return
+        if app_state["settings"].get("active_profile") == name:
+            app_state["settings"]["active_profile"] = new_name
+            save_settings()
+            update_profile_selector_label(new_name)
+        refresh_profile_selector()
 
     def refresh_profile_selector():
-        menu = app_state.get("profile_menu")
-        if not menu:
+        profile_list = app_state.get("profile_list")
+        if not profile_list:
             return
         active = app_state["settings"].get("active_profile", "Default")
         profiles = list_profiles()
-        for child in menu.get_children():
-            menu.remove(child)
+        for child in profile_list.get_children():
+            profile_list.remove(child)
         for p in profiles:
-            item = Gtk.MenuItem(label=p)
-            item.connect("activate", lambda _w, profile_name=p: select_profile(profile_name))
-            menu.append(item)
-        menu.show_all()
+            row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=2)
+            row.set_margin_start(4)
+            row.set_margin_end(4)
+            row.get_style_context().add_class("profile-popover-row")
+            name_btn = Gtk.Button(label=p)
+            name_btn.set_relief(Gtk.ReliefStyle.NONE)
+            name_btn.set_halign(Gtk.Align.START)
+            name_btn.set_hexpand(True)
+            name_btn.get_style_context().add_class("profile-menu-select")
+            name_btn.connect("clicked", lambda _w, profile_name=p: select_profile(profile_name, close_popover=True))
+            edit_btn = Gtk.Button(label="✏")
+            edit_btn.set_relief(Gtk.ReliefStyle.NONE)
+            edit_btn.get_style_context().add_class("profile-menu-action")
+            edit_btn.connect("clicked", lambda _w, profile_name=p: on_rename_profile_named(profile_name))
+            delete_btn = Gtk.Button(label="🗑")
+            delete_btn.set_relief(Gtk.ReliefStyle.NONE)
+            delete_btn.get_style_context().add_class("profile-menu-action")
+            delete_btn.get_style_context().add_class("profile-menu-delete")
+            delete_btn.connect("clicked", lambda _w, profile_name=p: on_delete_profile_named(profile_name))
+            row.pack_start(name_btn, True, True, 0)
+            row.pack_start(edit_btn, False, False, 0)
+            row.pack_start(delete_btn, False, False, 0)
+            profile_list.pack_start(row, False, False, 0)
+        profile_list.show_all()
         if active in profiles:
             update_profile_selector_label(active)
         elif profiles:
@@ -1650,30 +1817,10 @@ def create_window_content(window):
         dialog.destroy()
         if response == Gtk.ResponseType.OK and name:
             save_profile(name)
+            app_state["settings"]["active_profile"] = name
+            save_settings()
             refresh_profile_selector()
-
-    def on_save_profile(btn):
-        name = app_state["settings"].get("active_profile", "Default")
-        if name:
-            save_profile(name)
-
-    def on_delete_profile(btn):
-        name = app_state["settings"].get("active_profile", "Default")
-        if not name:
-            return
-        dialog = Gtk.MessageDialog(
-            parent=app_state["window"],
-            flags=Gtk.DialogFlags.MODAL,
-            type=Gtk.MessageType.WARNING,
-            buttons=Gtk.ButtonsType.OK_CANCEL,
-            message_format=_('Delete profile "%s"?') % name,
-        )
-        dialog.set_title(_("Delete Profile"))
-        response = dialog.run()
-        dialog.destroy()
-        if response == Gtk.ResponseType.OK:
-            delete_profile_file(name)
-            refresh_profile_selector()
+            select_profile(name)
 
     profile_section = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
     profile_section.set_margin_bottom(16)
@@ -1686,14 +1833,11 @@ def create_window_content(window):
     profile_section.pack_start(profile_title, False, False, 0)
 
     combo_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=4)
-    profile_menu = Gtk.Menu()
-    profile_menu.get_style_context().add_class("profile-menu")
-    profile_menu_btn = Gtk.MenuButton()
-    profile_menu_btn.set_popup(profile_menu)
-    profile_menu_btn.set_hexpand(True)
-    profile_menu_btn.set_halign(Gtk.Align.FILL)
-    profile_menu_btn.set_relief(Gtk.ReliefStyle.NONE)
-    profile_menu_btn.get_style_context().add_class("profile-selector")
+    profile_selector_btn = Gtk.Button()
+    profile_selector_btn.set_hexpand(True)
+    profile_selector_btn.set_halign(Gtk.Align.FILL)
+    profile_selector_btn.set_relief(Gtk.ReliefStyle.NONE)
+    profile_selector_btn.get_style_context().add_class("profile-selector")
     profile_selector_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
     profile_label = Gtk.Label(label=app_state["settings"].get("active_profile", "Default"))
     profile_label.set_halign(Gtk.Align.START)
@@ -1702,8 +1846,21 @@ def create_window_content(window):
     profile_arrow.get_style_context().add_class("profile-arrow")
     profile_selector_box.pack_start(profile_label, True, True, 0)
     profile_selector_box.pack_start(profile_arrow, False, False, 0)
-    profile_menu_btn.add(profile_selector_box)
-    combo_row.pack_start(profile_menu_btn, True, True, 0)
+    profile_selector_btn.add(profile_selector_box)
+    profile_popover = Gtk.Popover.new(profile_selector_btn)
+    profile_popover.set_position(Gtk.PositionType.BOTTOM)
+    profile_popover.get_style_context().add_class("profile-popover")
+    profile_list = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
+    profile_list.set_size_request(200, -1)
+    profile_popover.add(profile_list)
+    def toggle_profile_popover(_btn):
+        if profile_popover.get_visible():
+            profile_popover.popdown()
+        else:
+            profile_popover.popup()
+
+    profile_selector_btn.connect("clicked", toggle_profile_popover)
+    combo_row.pack_start(profile_selector_btn, True, True, 0)
     new_btn = Gtk.Button(label="+")
     new_btn.set_size_request(32, -1)
     new_btn.get_style_context().add_class("reset-btn")
@@ -1711,22 +1868,10 @@ def create_window_content(window):
     combo_row.pack_start(new_btn, False, False, 0)
     profile_section.pack_start(combo_row, True, True, 0)
 
-    action_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=4)
-    save_btn = Gtk.Button(label=_("Save"))
-    save_btn.get_style_context().add_class("reset-btn")
-    save_btn.set_hexpand(True)
-    save_btn.connect("clicked", on_save_profile)
-    action_row.pack_start(save_btn, True, True, 0)
-    delete_btn = Gtk.Button(label=_("Delete"))
-    delete_btn.get_style_context().add_class("reset-btn")
-    delete_btn.set_hexpand(True)
-    delete_btn.connect("clicked", on_delete_profile)
-    action_row.pack_start(delete_btn, True, True, 0)
-    profile_section.pack_start(action_row, True, True, 0)
-
     sidebar.pack_start(profile_section, True, True, 0)
-    app_state["profile_menu"] = profile_menu
-    app_state["profile_menu_btn"] = profile_menu_btn
+    app_state["profile_popover"] = profile_popover
+    app_state["profile_list"] = profile_list
+    app_state["profile_selector_btn"] = profile_selector_btn
     app_state["profile_label"] = profile_label
     refresh_profile_selector()
 
@@ -1811,4 +1956,3 @@ def main():
 
 
 main()
-am
