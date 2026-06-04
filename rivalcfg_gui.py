@@ -1778,11 +1778,19 @@ def create_window_content(window):
             name_btn.set_hexpand(True)
             name_btn.get_style_context().add_class("profile-menu-select")
             name_btn.connect("clicked", lambda _w, profile_name=p: select_profile(profile_name, close_popover=True))
-            edit_btn = Gtk.Button(label="✏")
+            edit_btn_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
+                os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "pencil.svg"),
+                16, 16, True)
+            edit_btn = Gtk.Button()
+            edit_btn.set_image(Gtk.Image.new_from_pixbuf(edit_btn_pixbuf))
             edit_btn.set_relief(Gtk.ReliefStyle.NONE)
             edit_btn.get_style_context().add_class("profile-menu-action")
             edit_btn.connect("clicked", lambda _w, profile_name=p: on_rename_profile_named(profile_name))
-            delete_btn = Gtk.Button(label="🗑")
+            delete_btn_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
+                os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "trash.svg"),
+                16, 16, True)
+            delete_btn = Gtk.Button()
+            delete_btn.set_image(Gtk.Image.new_from_pixbuf(delete_btn_pixbuf))
             delete_btn.set_relief(Gtk.ReliefStyle.NONE)
             delete_btn.get_style_context().add_class("profile-menu-action")
             delete_btn.get_style_context().add_class("profile-menu-delete")
