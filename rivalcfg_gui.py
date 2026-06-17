@@ -101,10 +101,10 @@ def save_profile(name):
     profile = {
         "dpi_values": app_state.get("dpi_values", [400, 800, 1600, 3200, 6400]),
         "polling_hz": app_state.get("polling_hz", 1000),
-        "z1_hex": app_state.get("z1_hex", "ff0000"),
-        "z2_hex": app_state.get("z2_hex", "00ff00"),
-        "z3_hex": app_state.get("z3_hex", "0000ff"),
-        "z4_hex": app_state.get("z4_hex", "aa00ff"),
+        "z1_hex": app_state.get("z1_hex", "ff6600"),
+        "z2_hex": app_state.get("z2_hex", "ff6600"),
+        "z3_hex": app_state.get("z3_hex", "ff6600"),
+        "z4_hex": app_state.get("z4_hex", "ff6600"),
         "selected_effect": app_state.get("selected_effect", "steady"),
         "button_mapping": app_state.get("button_mapping", {}),
     }
@@ -608,10 +608,10 @@ def create_rgb_page():
     colors_title.set_halign(Gtk.Align.START)
     card.pack_start(colors_title, False, False, 0)
 
-    app_state["z1_hex"] = "ff0000"
-    app_state["z2_hex"] = "00ff00"
-    app_state["z3_hex"] = "0000ff"
-    app_state["z4_hex"] = "aa00ff"
+    app_state["z1_hex"] = "ff6600"
+    app_state["z2_hex"] = "ff6600"
+    app_state["z3_hex"] = "ff6600"
+    app_state["z4_hex"] = "ff6600"
     app_state["color_buttons"] = {}
     app_state["color_previews"] = {}
 
@@ -667,10 +667,10 @@ def create_rgb_page():
         color_btn.connect("color-set", on_color_set)
         return row
 
-    card.pack_start(make_color_row(_("Z1 - Top Strip"), "ff0000", "z1_hex"), False, False, 0)
-    card.pack_start(make_color_row(_("Z2 - Middle Strip"), "00ff00", "z2_hex"), False, False, 0)
-    card.pack_start(make_color_row(_("Z3 - Bottom Strip"), "0000ff", "z3_hex"), False, False, 0)
-    card.pack_start(make_color_row(_("Z4 - Logo"), "aa00ff", "z4_hex"), False, False, 0)
+    card.pack_start(make_color_row(_("Z1 - Top Strip"), "ff6600", "z1_hex"), False, False, 0)
+    card.pack_start(make_color_row(_("Z2 - Middle Strip"), "ff6600", "z2_hex"), False, False, 0)
+    card.pack_start(make_color_row(_("Z3 - Bottom Strip"), "ff6600", "z3_hex"), False, False, 0)
+    card.pack_start(make_color_row(_("Z4 - Logo"), "ff6600", "z4_hex"), False, False, 0)
 
     effect_title = Gtk.Label(label=_("EFFECT"))
     effect_title.get_style_context().add_class("card-title")
@@ -1468,6 +1468,38 @@ def create_settings_page():
             def cb(success, msg):
                 if not success:
                     GLib.idle_add(set_status, "error", "✗ " + _("Mouse not connected"))
+                    return
+                orange = "ff6600"
+                for key in ["z1_hex", "z2_hex", "z3_hex", "z4_hex"]:
+                    app_state[key] = orange
+                    if key in app_state.get("color_buttons", {}):
+                        rgba = Gdk.RGBA()
+                        rgba.parse(f"#{orange}")
+                        app_state["color_buttons"][key].set_rgba(rgba)
+                    if key in app_state.get("color_previews", {}):
+                        app_state["color_previews"][key].queue_draw()
+                z1 = app_state["z1_hex"]
+                z2 = app_state["z2_hex"]
+                z3 = app_state["z3_hex"]
+                z4 = app_state["z4_hex"]
+                def after_z1(success, msg):
+                    if not success:
+                        return
+                    run_rivalcfg(["--strip-middle-color", z2], after_z2)
+                def after_z2(success, msg):
+                    if not success:
+                        return
+                    run_rivalcfg(["--strip-bottom-color", z3], after_z3)
+                def after_z3(success, msg):
+                    if not success:
+                        return
+                    run_rivalcfg(["--logo-color", z4], after_z4)
+                def after_z4(success, msg):
+                    if not success:
+                        return
+                    run_rivalcfg(["--light-effect", "steady"])
+                run_rivalcfg(["--strip-top-color", z1], after_z1)
+                save_active_profile()
             run_rivalcfg(["--reset"], cb)
 
     reset_btn.connect("clicked", on_factory_reset)
