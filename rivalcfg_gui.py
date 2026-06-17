@@ -1343,7 +1343,7 @@ def create_settings_page():
     lang_row.pack_start(lang_text, True, True, 0)
 
     lang_combo = Gtk.ComboBoxText()
-    languages = [("en", "English"), ("es", "Español"), ("tr", "Türkçe")]
+    languages = [("en", "🇺🇲 English"), ("es", "🇪🇸 Español"), ("tr", "🇹🇷 Türkçe")]
     current_lang = app_state["settings"].get("language", "en")
     for code, name in languages:
         lang_combo.append_text(name)
