@@ -9,7 +9,7 @@ license=('GPL-3.0-or-later')
 depends=('python' 'python-gobject' 'python-cairo')
 optdepends=('rivalcfg: SteelSeries CLI tool')
 source=("${pkgname}-${pkgver}.tar.gz::https://github.com/MrGodzilla38/${pkgname}/archive/refs/tags/v${pkgver}.tar.gz")
-sha256sums=('1298b389e9f5a41cd29d87809a1395bf38e3b0761c2046501b3315aa796c9a13')
+sha256sums=('6da8c1ca01cdaebcdbe0bc11b4b7d7b381a2d1ed5c70d9798ce17fb010c502f1')
 
 package() {
     cd "${srcdir}/${pkgname}-${pkgver}"
