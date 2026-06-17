@@ -1203,6 +1203,51 @@ def apply_profile_to_ui(profile):
     app_state["_loading_profile"] = False
 
 
+def apply_all_to_device():
+    """Apply all current profile settings to the device with a single rivalcfg call."""
+    save_active_profile()
+
+    args = []
+
+    dpi_vals = app_state.get("dpi_values")
+    if dpi_vals:
+        args.extend(["--sensitivity", ",".join(str(v) for v in dpi_vals)])
+
+    polling_hz = app_state.get("polling_hz")
+    if polling_hz:
+        args.extend(["--polling-rate", str(polling_hz)])
+
+    z1 = app_state.get("z1_hex")
+    z2 = app_state.get("z2_hex")
+    z3 = app_state.get("z3_hex")
+    z4 = app_state.get("z4_hex")
+    effect = app_state.get("selected_effect")
+    if z1:
+        args.extend(["--strip-top-color", z1])
+    if z2:
+        args.extend(["--strip-middle-color", z2])
+    if z3:
+        args.extend(["--strip-bottom-color", z3])
+    if z4:
+        args.extend(["--logo-color", z4])
+    if effect:
+        args.extend(["--light-effect", effect])
+
+    mapping = app_state.get("button_mapping")
+    if mapping:
+        btn_arg = (
+            f"buttons(button1={mapping['button1']}; button2={mapping['button2']}; "
+            f"button3={mapping['button3']}; button4={mapping['button4']}; "
+            f"button5={mapping['button5']}; button6={mapping['button6']}; "
+            f"scrollup={mapping['scrollup']}; scrolldown={mapping['scrolldown']}; "
+            f"layout=qwerty)"
+        )
+        args.extend(["--buttons", btn_arg])
+
+    if args:
+        run_rivalcfg(args)
+
+
 def create_settings_page():
     """Create Settings page."""
     page = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
@@ -1704,6 +1749,7 @@ def create_window_content(window):
         app_state["settings"]["active_profile"] = name
         save_settings()
         update_profile_selector_label(name)
+        apply_all_to_device()
         if close_popover:
             close_profile_popover()
 
