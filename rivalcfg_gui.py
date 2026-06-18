@@ -799,7 +799,7 @@ def create_buttons_page():
     card.get_style_context().add_class("card")
     page.pack_start(card, True, True, 0)
 
-    img_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "rival3.png")
+    img_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "rival3.png")
 
     overlay = Gtk.Overlay()
     overlay.set_hexpand(True)
@@ -1666,7 +1666,7 @@ def create_window():
     window.set_resizable(True)
     window.connect("destroy", Gtk.main_quit)
 
-    icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logo.png")
+    icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "logo.png")
     if os.path.exists(icon_path):
         icon_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(icon_path, 128, 128, True)
         window.set_icon(icon_pixbuf)
@@ -1727,7 +1727,7 @@ def create_window_content(window):
 
     content_grid.attach(sidebar, 0, 0, 1, 1)
 
-    icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logo.png")
+    icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "logo.png")
     if os.path.exists(icon_path):
         logo_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(icon_path, 100, 100, True)
         logo_img = Gtk.Image.new_from_pixbuf(logo_pixbuf)
