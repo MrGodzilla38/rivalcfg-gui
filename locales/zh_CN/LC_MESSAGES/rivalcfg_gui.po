@@ -1,0 +1,445 @@
+# Simplified Chinese translations for rivalcfg-gui.
+msgid ""
+msgstr ""
+"Project-Id-Version: rivalcfg-gui 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-05-23 22:43+0300\n"
+"PO-Revision-Date: 2026-06-18\n"
+"Last-Translator: Automatically generated\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: rivalcfg_gui.py:38
+msgid "python-gobject is not installed. Install: pacman -S python-gobject"
+msgstr "python-gobject 未安装。安装: pacman -S python-gobject"
+
+#: rivalcfg_gui.py:45 rivalcfg_gui.py:403
+msgid "rivalcfg is not installed. Install: pip install rivalcfg"
+msgstr "rivalcfg 未安装。安装: pip install rivalcfg"
+
+#: rivalcfg_gui.py:84
+#, python-brace-format
+msgid "Failed to save settings: {}"
+msgstr "保存设置失败: {}"
+
+#: rivalcfg_gui.py:380
+msgid "Processing..."
+msgstr "处理中..."
+
+#: rivalcfg_gui.py:393
+msgid "Unknown error"
+msgstr "未知错误"
+
+#: rivalcfg_gui.py:394 rivalcfg_gui.py:404 rivalcfg_gui.py:409
+#: rivalcfg_gui.py:414
+msgid "Error"
+msgstr "错误"
+
+#: rivalcfg_gui.py:399
+msgid "Done"
+msgstr "完成"
+
+#: rivalcfg_gui.py:408
+msgid "Timeout (10s)"
+msgstr "超时 (10秒)"
+
+#: rivalcfg_gui.py:413
+msgid "Unexpected error"
+msgstr "意外错误"
+
+#: rivalcfg_gui.py:437
+msgid "DPI Settings"
+msgstr "DPI 设置"
+
+#: rivalcfg_gui.py:455
+msgid "Preset"
+msgstr "预设"
+
+#: rivalcfg_gui.py:493 rivalcfg_gui.py:575 rivalcfg_gui.py:718
+#: rivalcfg_gui.py:1032
+msgid "APPLY"
+msgstr "应用"
+
+#: rivalcfg_gui.py:505 rivalcfg_gui.py:1050
+msgid "RESET"
+msgstr "重置"
+
+#: rivalcfg_gui.py:529
+msgid "Polling Rate"
+msgstr "轮询率"
+
+#: rivalcfg_gui.py:547 rivalcfg_gui.py:551
+#, python-brace-format
+msgid "{} Hz"
+msgstr "{} Hz"
+
+#: rivalcfg_gui.py:560 rivalcfg_gui.py:569
+#, python-brace-format
+msgid "{} Hz → {} ms"
+msgstr "{} Hz → {} 毫秒"
+
+#: rivalcfg_gui.py:597
+msgid "RGB Lighting"
+msgstr "RGB 灯光"
+
+#: rivalcfg_gui.py:606
+msgid "COLORS"
+msgstr "颜色"
+
+#: rivalcfg_gui.py:670
+msgid "Z1 - Top Strip"
+msgstr "Z1 - 顶部灯条"
+
+#: rivalcfg_gui.py:671
+msgid "Z2 - Middle Strip"
+msgstr "Z2 - 中部灯条"
+
+#: rivalcfg_gui.py:672
+msgid "Z3 - Bottom Strip"
+msgstr "Z3 - 底部灯条"
+
+#: rivalcfg_gui.py:673
+msgid "Z4 - Logo"
+msgstr "Z4 - 标志"
+
+#: rivalcfg_gui.py:675
+msgid "EFFECT"
+msgstr "效果"
+
+#: rivalcfg_gui.py:682
+msgid "Steady"
+msgstr "常亮"
+
+#: rivalcfg_gui.py:683
+msgid "Breath"
+msgstr "呼吸"
+
+#: rivalcfg_gui.py:684
+msgid "Breath (Slow)"
+msgstr "呼吸 (慢)"
+
+#: rivalcfg_gui.py:685
+msgid "Breath (Fast)"
+msgstr "呼吸 (快)"
+
+#: rivalcfg_gui.py:686
+msgid "Rainbow Shift"
+msgstr "彩虹渐变"
+
+#: rivalcfg_gui.py:687
+msgid "Rainbow Breath"
+msgstr "彩虹呼吸"
+
+#: rivalcfg_gui.py:688
+msgid "Disco"
+msgstr "迪斯科"
+
+#: rivalcfg_gui.py:767
+msgid "Button Mapping"
+msgstr "按键映射"
+
+#: rivalcfg_gui.py:773
+msgid "Button 1"
+msgstr "按键 1"
+
+#: rivalcfg_gui.py:774
+msgid "Button 2"
+msgstr "按键 2"
+
+#: rivalcfg_gui.py:775
+msgid "Button 3"
+msgstr "按键 3"
+
+#: rivalcfg_gui.py:776
+msgid "Button 4"
+msgstr "按键 4"
+
+#: rivalcfg_gui.py:777
+msgid "Button 5"
+msgstr "按键 5"
+
+#: rivalcfg_gui.py:778
+msgid "Button 6"
+msgstr "按键 6"
+
+#: rivalcfg_gui.py:779
+msgid "DPI Cycle"
+msgstr "DPI 循环"
+
+#: rivalcfg_gui.py:780 rivalcfg_gui.py:857
+msgid "Scroll Up"
+msgstr "向上滚动"
+
+#: rivalcfg_gui.py:781 rivalcfg_gui.py:858
+msgid "Scroll Down"
+msgstr "向下滚动"
+
+#: rivalcfg_gui.py:782
+msgid "Disable"
+msgstr "禁用"
+
+#: rivalcfg_gui.py:815
+msgid "rival3.png not found."
+msgstr "未找到 rival3.png。"
+
+#: rivalcfg_gui.py:851
+msgid "Left Click"
+msgstr "左键单击"
+
+#: rivalcfg_gui.py:852
+msgid "Right Click"
+msgstr "右键单击"
+
+#: rivalcfg_gui.py:853
+msgid "Middle"
+msgstr "中键"
+
+#: rivalcfg_gui.py:854
+msgid "Back"
+msgstr "后退"
+
+#: rivalcfg_gui.py:855
+msgid "Forward"
+msgstr "前进"
+
+#: rivalcfg_gui.py:856 rivalcfg_gui.py:1546 rivalcfg_gui.py:1895
+msgid "DPI"
+msgstr "DPI"
+
+#: rivalcfg_gui.py:1082
+msgid "Connected Devices"
+msgstr "已连接设备"
+
+#: rivalcfg_gui.py:1098
+msgid "Click refresh to scan..."
+msgstr "点击刷新进行扫描..."
+
+#: rivalcfg_gui.py:1106
+msgid "REFRESH"
+msgstr "刷新"
+
+#: rivalcfg_gui.py:1130
+msgid "About"
+msgstr "关于"
+
+#: rivalcfg_gui.py:1140
+msgid "Linux GUI configuration tool for SteelSeries mice."
+msgstr "适用于 SteelSeries 鼠标的 Linux 图形化配置工具。"
+
+#: rivalcfg_gui.py:1141
+msgid "Built on top of the rivalcfg library."
+msgstr "基于 rivalcfg 库构建。"
+
+#: rivalcfg_gui.py:1142
+msgid "Requirements:"
+msgstr "系统要求:"
+
+#: rivalcfg_gui.py:1143
+msgid "  pip install rivalcfg"
+msgstr "  pip install rivalcfg"
+
+#: rivalcfg_gui.py:1144
+msgid "  pacman -S python-gobject python-cairo"
+msgstr "  pacman -S python-gobject python-cairo"
+
+#: rivalcfg_gui.py:1155
+msgid "GitHub: "
+msgstr "GitHub: "
+
+#: rivalcfg_gui.py:1161
+msgid "github.com/MrGodzilla38/rivalcfg-gui"
+msgstr "github.com/MrGodzilla38/rivalcfg-gui"
+
+#: rivalcfg_gui.py:1214
+msgid "Settings"
+msgstr "设置"
+
+#: rivalcfg_gui.py:1224
+msgid "BEHAVIOR"
+msgstr "行为"
+
+#: rivalcfg_gui.py:1235
+msgid "Startup Minimize"
+msgstr "启动时最小化"
+
+#: rivalcfg_gui.py:1238
+msgid "Launch minimized to system tray"
+msgstr "启动时最小化到系统托盘"
+
+#: rivalcfg_gui.py:1258
+msgid "Auto-Apply on Change"
+msgstr "更改时自动应用"
+
+#: rivalcfg_gui.py:1261
+msgid "Apply settings immediately when changed"
+msgstr "更改设置后立即应用"
+
+#: rivalcfg_gui.py:1280
+msgid "LANGUAGE"
+msgstr "语言"
+
+#: rivalcfg_gui.py:1290
+msgid "Language"
+msgstr "语言"
+
+#: rivalcfg_gui.py:1293
+msgid "Select application display language"
+msgstr "选择应用程序显示语言"
+
+#: rivalcfg_gui.py:1327
+msgid "APPEARANCE"
+msgstr "外观"
+
+#: rivalcfg_gui.py:1338
+msgid "Accent Color"
+msgstr "强调色"
+
+#: rivalcfg_gui.py:1341
+msgid "UI highlight and button color"
+msgstr "界面高亮和按钮颜色"
+
+#: rivalcfg_gui.py:1388
+msgid "Reset to Default"
+msgstr "恢复默认"
+
+#: rivalcfg_gui.py:1412
+msgid "Mouse Settings"
+msgstr "鼠标设置"
+
+#: rivalcfg_gui.py:1420
+msgid "CHECK MOUSE"
+msgstr "检测鼠标"
+
+#: rivalcfg_gui.py:1426 rivalcfg_gui.py:1954
+msgid "Mouse connected"
+msgstr "鼠标已连接"
+
+#: rivalcfg_gui.py:1428 rivalcfg_gui.py:1956
+msgid "Mouse not found"
+msgstr "未找到鼠标"
+
+#: rivalcfg_gui.py:1431
+msgid "No device found."
+msgstr "未找到设备。"
+
+#: rivalcfg_gui.py:1439
+msgid "FIRMWARE VERSION"
+msgstr "固件版本"
+
+#: rivalcfg_gui.py:1445
+#, python-format
+msgid "Firmware: %s"
+msgstr "固件: %s"
+
+#: rivalcfg_gui.py:1447 rivalcfg_gui.py:1470
+msgid "Mouse not connected"
+msgstr "鼠标未连接"
+
+#: rivalcfg_gui.py:1453
+msgid "FACTORY RESET"
+msgstr "恢复出厂设置"
+
+#: rivalcfg_gui.py:1462
+msgid "All settings will be restored to factory defaults. Are you sure?"
+msgstr "所有设置将恢复为出厂默认值。你确定吗？"
+
+#: rivalcfg_gui.py:1464
+msgid "Factory Reset"
+msgstr "恢复出厂设置"
+
+#: rivalcfg_gui.py:1547 rivalcfg_gui.py:1896
+msgid "POLLING"
+msgstr "轮询"
+
+#: rivalcfg_gui.py:1548 rivalcfg_gui.py:1897
+msgid "RGB"
+msgstr "RGB"
+
+#: rivalcfg_gui.py:1549 rivalcfg_gui.py:1898
+msgid "BUTTONS"
+msgstr "按键"
+
+#: rivalcfg_gui.py:1550 rivalcfg_gui.py:1899
+msgid "DEVICES"
+msgstr "设备"
+
+#: rivalcfg_gui.py:1551 rivalcfg_gui.py:1900
+msgid "SETTINGS"
+msgstr "设置"
+
+#: rivalcfg_gui.py:1552 rivalcfg_gui.py:1901
+msgid "ABOUT"
+msgstr "关于"
+
+#: rivalcfg_gui.py:1689
+msgid "Cannot delete the last profile."
+msgstr "无法删除最后一个配置文件。"
+
+#: rivalcfg_gui.py:1699
+#, python-format
+msgid "Delete profile \"%s\"?"
+msgstr "删除配置文件 \"%s\"？"
+
+#: rivalcfg_gui.py:1701
+msgid "Delete Profile"
+msgstr "删除配置文件"
+
+#: rivalcfg_gui.py:1719
+msgid "Rename Profile"
+msgstr "重命名配置文件"
+
+#: rivalcfg_gui.py:1724 rivalcfg_gui.py:1809
+msgid "Cancel"
+msgstr "取消"
+
+#: rivalcfg_gui.py:1725 rivalcfg_gui.py:1810
+msgid "OK"
+msgstr "确定"
+
+#: rivalcfg_gui.py:1733 rivalcfg_gui.py:1818
+msgid "Profile name:"
+msgstr "配置文件名称:"
+
+#: rivalcfg_gui.py:1751
+#, python-format
+msgid "Could not rename to \"%s\". Name may already exist."
+msgstr "无法重命名为 \"%s\"。名称可能已存在。"
+
+#: rivalcfg_gui.py:1804
+msgid "New Profile"
+msgstr "新建配置文件"
+
+#: rivalcfg_gui.py:1839
+msgid "PROFILES"
+msgstr "配置文件"
+
+#: rivalcfg_gui.py:1936
+msgid "Starting..."
+msgstr "启动中..."
+
+#: rivalcfg_gui.py:1942
+msgid "Don't save (--no-save)"
+msgstr "不要保存 (--no-save)"
+
+#~ msgid "BUTTON ASSIGNMENTS"
+#~ msgstr "BUTTON ASSIGNMENTS"
+
+#~ msgid "Left Click (B1)"
+#~ msgstr "Left Click (B1)"
+
+#~ msgid "Right Click (B2)"
+#~ msgstr "Right Click (B2)"
+
+#~ msgid "Middle Click (B3)"
+#~ msgstr "Middle Click (B3)"
+
+#~ msgid "Back (B4)"
+#~ msgstr "Back (B4)"
+
+#~ msgid "Forward (B5)"
+#~ msgstr "Forward (B5)"
+
+#~ msgid "DPI (B6)"
+#~ msgstr "DPI (B6)"
