@@ -9,6 +9,8 @@ import threading
 import math
 import gettext
 import locale
+import logging
+from logging.handlers import TimedRotatingFileHandler
 
 LOCALE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "locales")
 
@@ -35,6 +37,7 @@ try:
     from gi.repository import Gtk, Gdk, GLib, GdkPixbuf
     import cairo
 except ImportError:
+    logging.critical("python-gobject is not installed. Install: pacman -S python-gobject")
     print(_("python-gobject is not installed. Install: pacman -S python-gobject"))
     sys.exit(1)
 
@@ -42,6 +45,7 @@ except ImportError:
 try:
     subprocess.run(["rivalcfg"], capture_output=True, timeout=5)
 except FileNotFoundError:
+    logging.critical("rivalcfg is not installed. Install: pip install rivalcfg")
     print(_("rivalcfg is not installed. Install: pip install rivalcfg"))
     sys.exit(1)
 
@@ -50,6 +54,7 @@ app_state = {}
 
 SETTINGS_DIR = os.path.expanduser("~/.config/rivalcfg-gui")
 SETTINGS_FILE = os.path.join(SETTINGS_DIR, "settings.json")
+LOGS_DIR = os.path.join(SETTINGS_DIR, "logs")
 
 DEFAULT_SETTINGS = {
     "startup_minimize": False,
@@ -58,6 +63,36 @@ DEFAULT_SETTINGS = {
     "language": "en",
     "active_profile": "Default",
 }
+
+
+def setup_logging():
+    """Configure logging: daily rotating logs kept for 7 days."""
+    os.makedirs(LOGS_DIR, exist_ok=True)
+
+    formatter = logging.Formatter(
+        "[%(asctime)s] [%(levelname)s] %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S"
+    )
+
+    def log_namer(default_name):
+        basedir = os.path.dirname(default_name)
+        fname = os.path.basename(default_name)
+        parts = fname.split(".")
+        if len(parts) >= 3 and len(parts[-1]) == 10 and parts[-1][4] == "-":
+            return os.path.join(basedir, f"{parts[-1]}.log")
+        return default_name
+
+    rotating = TimedRotatingFileHandler(
+        os.path.join(LOGS_DIR, "app.log"),
+        when="midnight", interval=1, backupCount=7, encoding="utf-8"
+    )
+    rotating.namer = log_namer
+    rotating.setFormatter(formatter)
+    rotating.setLevel(logging.DEBUG)
+
+    root = logging.getLogger()
+    root.setLevel(logging.DEBUG)
+    root.addHandler(rotating)
 
 
 def load_settings():
@@ -69,8 +104,8 @@ def load_settings():
             settings = dict(DEFAULT_SETTINGS)
             settings.update(saved)
             return settings
-    except Exception:
-        pass
+    except Exception as e:
+        logging.warning("Failed to load settings: %s", e)
     return dict(DEFAULT_SETTINGS)
 
 
@@ -81,6 +116,7 @@ def save_settings():
         with open(SETTINGS_FILE, "w") as f:
             json.dump(app_state["settings"], f, indent=4)
     except Exception as e:
+        logging.error("Failed to save settings: %s", e)
         print(_("Failed to save settings: {}").format(e))
 
 PROFILES_DIR = os.path.join(SETTINGS_DIR, "profiles")
@@ -111,6 +147,8 @@ def save_profile(name):
     path = os.path.join(PROFILES_DIR, f"{name}.json")
     with open(path, "w") as f:
         json.dump(profile, f, indent=4)
+    logging.info("Profile saved: %s (dpi=%s, polling=%s)", name,
+                 profile["dpi_values"], profile["polling_hz"])
 
 def load_profile_data(name):
     ensure_profiles_dir()
@@ -383,6 +421,7 @@ def run_rivalcfg(args, on_done=None):
             if app_state.get("no_save"):
                 cmd.append("--no-save")
             cmd.extend(args)
+            logging.info("rivalcfg %s", " ".join(cmd))
             result = subprocess.run(
                 cmd,
                 capture_output=True,
@@ -391,6 +430,7 @@ def run_rivalcfg(args, on_done=None):
             )
             if result.returncode != 0:
                 err = result.stderr.strip() if result.stderr.strip() else _("Unknown error")
+                logging.error("rivalcfg failed (exit %d): %s", result.returncode, err)
                 GLib.idle_add(set_status, "error", f"✗ {_('Error')}: {err}")
                 if on_done:
                     GLib.idle_add(on_done, False, err)
@@ -401,16 +441,19 @@ def run_rivalcfg(args, on_done=None):
                     GLib.idle_add(on_done, True, out)
         except FileNotFoundError:
             msg = _("rivalcfg is not installed. Install: pip install rivalcfg")
+            logging.error("rivalcfg binary not found")
             GLib.idle_add(set_status, "error", f"✗ {_('Error')}: {msg}")
             if on_done:
                 GLib.idle_add(on_done, False, msg)
         except subprocess.TimeoutExpired:
             msg = _("Timeout (10s)")
+            logging.error("rivalcfg command timed out: %s", args)
             GLib.idle_add(set_status, "error", f"✗ {_('Error')}: {msg}")
             if on_done:
                 GLib.idle_add(on_done, False, msg)
         except Exception as e:
             msg = f"{_('Unexpected error')}: {e}"
+            logging.error("Unexpected error in rivalcfg: %s", e, exc_info=True)
             GLib.idle_add(set_status, "error", f"✗ {_('Error')}: {msg}")
             if on_done:
                 GLib.idle_add(on_done, False, msg)
@@ -1337,7 +1380,12 @@ def create_settings_page():
     sm_switch.set_active(app_state["settings"]["startup_minimize"])
     sm_row.pack_start(sm_switch, False, False, 0)
 
-    sm_switch.connect("notify::active", lambda *a: (app_state["settings"].__setitem__("startup_minimize", sm_switch.get_active()), save_settings()))
+    def on_startup_minimize(s, *a):
+        val = sm_switch.get_active()
+        app_state["settings"]["startup_minimize"] = val
+        logging.info("Settings: startup_minimize = %s", val)
+        save_settings()
+    sm_switch.connect("notify::active", on_startup_minimize)
     behavior_card.pack_start(sm_row, False, False, 0)
 
     # Auto-Apply on Change
@@ -1360,7 +1408,12 @@ def create_settings_page():
     aa_switch.set_active(app_state["settings"]["auto_apply"])
     aa_row.pack_start(aa_switch, False, False, 0)
 
-    aa_switch.connect("notify::active", lambda *a: (app_state["settings"].__setitem__("auto_apply", aa_switch.get_active()), save_settings()))
+    def on_auto_apply(s, *a):
+        val = aa_switch.get_active()
+        app_state["settings"]["auto_apply"] = val
+        logging.info("Settings: auto_apply = %s", val)
+        save_settings()
+    aa_switch.connect("notify::active", on_auto_apply)
     behavior_card.pack_start(aa_row, False, False, 0)
 
     # --- LANGUAGE CARD ---
@@ -1414,6 +1467,7 @@ def create_settings_page():
         selected_idx = combo.get_active()
         lang_code = languages[selected_idx][0]
         app_state["settings"]["language"] = lang_code
+        logging.info("Settings: language = %s", lang_code)
         save_settings()
         _set_language(lang_code)
         rebuild_ui()
@@ -1479,6 +1533,7 @@ def create_settings_page():
         col = button.get_rgba()
         current_accent = f"#{int(col.red * 255):02x}{int(col.green * 255):02x}{int(col.blue * 255):02x}"
         app_state["settings"]["accent_color"] = current_accent
+        logging.info("Settings: accent_color = %s", current_accent)
         ac_preview.queue_draw()
         update_accent_color(current_accent)
         save_settings()
@@ -1496,6 +1551,7 @@ def create_settings_page():
         nonlocal current_accent
         current_accent = DEFAULT_SETTINGS["accent_color"]
         app_state["settings"]["accent_color"] = current_accent
+        logging.info("Settings: accent_color reset to default")
         rgba = Gdk.RGBA()
         rgba.parse(current_accent)
         ac_color_btn.set_rgba(rgba)
@@ -1567,6 +1623,7 @@ def create_settings_page():
         response = dialog.run()
         dialog.destroy()
         if response == Gtk.ResponseType.OK:
+            logging.info("Factory reset executed")
             def cb(success, msg):
                 if not success:
                     GLib.idle_add(set_status, "error", "✗ " + _("Mouse not connected"))
@@ -1652,6 +1709,7 @@ def update_accent_color(accent):
 
 def rebuild_ui():
     """Rebuild the entire UI with the new language."""
+    logging.info("UI rebuilt (language changed)")
     window = app_state["window"]
     current_page = app_state["stack"].get_visible_child_name()
     current_status_text = app_state["status_label"].get_text()
@@ -1807,6 +1865,7 @@ def create_window_content(window):
         save_settings()
         update_profile_selector_label(name)
         apply_all_to_device()
+        logging.info("Profile activated: %s", name)
         if close_popover:
             close_profile_popover()
 
@@ -1840,6 +1899,7 @@ def create_window_content(window):
             return
         was_active = app_state["settings"].get("active_profile") == name
         delete_profile_file(name)
+        logging.info("Profile deleted: %s", name)
         refresh_profile_selector()
         if was_active:
             remaining = list_profiles()
@@ -1888,6 +1948,7 @@ def create_window_content(window):
             err.run()
             err.destroy()
             return
+        logging.info("Profile renamed: %s → %s", name, new_name)
         if app_state["settings"].get("active_profile") == name:
             app_state["settings"]["active_profile"] = new_name
             save_settings()
@@ -1969,6 +2030,7 @@ def create_window_content(window):
         dialog.destroy()
         if response == Gtk.ResponseType.OK and name:
             save_profile(name)
+            logging.info("Profile created: %s", name)
             app_state["settings"]["active_profile"] = name
             save_settings()
             refresh_profile_selector()
@@ -2086,7 +2148,9 @@ def create_window_content(window):
     status_bar.pack_end(no_save_check, False, False, 0)
 
     def on_no_save_toggled(button):
-        app_state["no_save"] = button.get_active()
+        val = button.get_active()
+        app_state["no_save"] = val
+        logging.info("Settings: no_save = %s", val)
 
     no_save_check.connect("toggled", on_no_save_toggled)
 
@@ -2094,8 +2158,10 @@ def create_window_content(window):
         def startup_check():
             def cb(success, msg):
                 if success and "184c" in msg:
+                    logging.info("Startup: mouse connected")
                     set_status("ok", "✓ " + _("Mouse connected"))
                 else:
+                    logging.warning("Startup: mouse not found")
                     set_status("error", "✗ " + _("Mouse not found"))
             run_rivalcfg(["--print-debug"], cb)
 
@@ -2103,6 +2169,8 @@ def create_window_content(window):
 
 
 def main():
+    setup_logging()
+    logging.info("Application started")
     create_window()
     Gtk.main()
 
