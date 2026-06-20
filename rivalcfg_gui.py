@@ -99,7 +99,7 @@ def list_profiles():
 def save_profile(name):
     ensure_profiles_dir()
     profile = {
-        "dpi_values": app_state.get("dpi_values", [400, 800, 1600, 3200, 6400]),
+        "dpi_values": app_state.get("dpi_values", [800, 1600]),
         "polling_hz": app_state.get("polling_hz", 1000),
         "z1_hex": app_state.get("z1_hex", "ff6600"),
         "z2_hex": app_state.get("z2_hex", "ff6600"),
@@ -443,49 +443,96 @@ def create_dpi_page():
     card.get_style_context().add_class("card")
     page.pack_start(card, True, True, 0)
 
-    defaults = [400, 800, 1600, 3200, 6400]
+    presets_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+    card.pack_start(presets_box, False, False, 0)
+
     app_state["dpi_scales"] = []
     app_state["dpi_labels"] = []
-    app_state["dpi_values"] = list(defaults)
+    app_state["dpi_values"] = [800, 1600]
 
-    for i in range(5):
-        row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
-        row.set_margin_bottom(8)
+    assets_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets")
+    trash_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
+        os.path.join(assets_dir, "trash.svg"), 16, 16, True
+    )
 
-        lbl = Gtk.Label(label=f"{_('Preset')} {i + 1}")
-        lbl.set_size_request(80, -1)
-        lbl.set_halign(Gtk.Align.START)
-        row.pack_start(lbl, False, False, 0)
+    def rebuild_dpi_ui():
+        for child in presets_box.get_children():
+            presets_box.remove(child)
+        app_state["dpi_scales"] = []
+        app_state["dpi_labels"] = []
 
-        val_label = Gtk.Label(label=str(defaults[i]))
-        val_label.get_style_context().add_class("value-display")
-        val_label.set_size_request(80, -1)
-        val_label.set_halign(Gtk.Align.START)
-        row.pack_start(val_label, False, False, 0)
-        app_state["dpi_labels"].append(val_label)
+        for i, val in enumerate(app_state["dpi_values"]):
+            row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+            row.set_margin_bottom(8)
 
-        scale = Gtk.Scale(orientation=Gtk.Orientation.HORIZONTAL)
-        scale.set_range(200, 8500)
-        scale.set_increments(100, 100)
-        scale.set_draw_value(False)
-        scale.set_digits(0)
-        scale.set_value(defaults[i])
-        scale.set_hexpand(True)
+            def on_delete_dpi(btn, idx=i):
+                if len(app_state["dpi_values"]) <= 1:
+                    return
+                del app_state["dpi_values"][idx]
+                rebuild_dpi_ui()
+                if not app_state.get("_loading_profile") and app_state["settings"].get("auto_apply"):
+                    vals = app_state["dpi_values"]
+                    run_rivalcfg(["--sensitivity", ",".join(str(v) for v in vals)])
 
-        def on_dpi_changed(sc, idx=i, vl=val_label):
-            v = int(sc.get_value())
-            vl.set_text(str(v))
-            app_state["dpi_values"][idx] = v
-            if not app_state.get("_loading_profile") and app_state["settings"].get("auto_apply"):
-                vals = app_state["dpi_values"]
-                arg = ",".join(str(val) for val in vals)
-                run_rivalcfg(["--sensitivity", arg])
+            trash_btn = Gtk.Button()
+            trash_btn.set_image(Gtk.Image.new_from_pixbuf(trash_pixbuf))
+            trash_btn.set_relief(Gtk.ReliefStyle.NONE)
+            trash_btn.get_style_context().add_class("dpi-delete-btn")
+            trash_btn.connect("clicked", on_delete_dpi)
+            row.pack_start(trash_btn, False, False, 0)
 
-        scale.connect("value-changed", on_dpi_changed)
-        row.pack_start(scale, True, True, 0)
-        app_state["dpi_scales"].append(scale)
+            lbl = Gtk.Label(label=f"DPI {i + 1}")
+            lbl.set_size_request(80, -1)
+            lbl.set_halign(Gtk.Align.START)
+            row.pack_start(lbl, False, False, 0)
 
-        card.pack_start(row, False, False, 0)
+            val_label = Gtk.Label(label=str(val))
+            val_label.get_style_context().add_class("value-display")
+            val_label.set_size_request(80, -1)
+            val_label.set_halign(Gtk.Align.START)
+            row.pack_start(val_label, False, False, 0)
+            app_state["dpi_labels"].append(val_label)
+
+            scale = Gtk.Scale(orientation=Gtk.Orientation.HORIZONTAL)
+            scale.set_range(200, 8500)
+            scale.set_increments(100, 100)
+            scale.set_draw_value(False)
+            scale.set_digits(0)
+            scale.set_value(val)
+            scale.set_hexpand(True)
+
+            def on_dpi_changed(sc, idx=i, vl=val_label):
+                v = int(sc.get_value())
+                vl.set_text(str(v))
+                app_state["dpi_values"][idx] = v
+                if not app_state.get("_loading_profile") and app_state["settings"].get("auto_apply"):
+                    vals = app_state["dpi_values"]
+                    arg = ",".join(str(val) for val in vals)
+                    run_rivalcfg(["--sensitivity", arg])
+
+            scale.connect("value-changed", on_dpi_changed)
+            row.pack_start(scale, True, True, 0)
+            app_state["dpi_scales"].append(scale)
+
+            presets_box.pack_start(row, False, False, 0)
+
+        presets_box.show_all()
+
+    app_state["_rebuild_dpi_ui"] = rebuild_dpi_ui
+    rebuild_dpi_ui()
+
+    add_btn = Gtk.Button(label="+ " + _("Add DPI"))
+    add_btn.set_halign(Gtk.Align.START)
+
+    def on_add_dpi(btn):
+        app_state["dpi_values"].append(800)
+        rebuild_dpi_ui()
+        if not app_state.get("_loading_profile") and app_state["settings"].get("auto_apply"):
+            vals = app_state["dpi_values"]
+            run_rivalcfg(["--sensitivity", ",".join(str(v) for v in vals)])
+
+    add_btn.connect("clicked", on_add_dpi)
+    card.pack_start(add_btn, False, False, 0)
 
     btn_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
     btn_row.set_halign(Gtk.Align.START)
@@ -506,9 +553,8 @@ def create_dpi_page():
     reset_btn.get_style_context().add_class("reset-btn")
 
     def on_reset_dpi(btn):
-        defaults = [400, 800, 1600, 3200, 6400]
-        for idx, val in enumerate(defaults):
-            app_state["dpi_scales"][idx].set_value(val)
+        app_state["dpi_values"] = [800, 1600]
+        rebuild_dpi_ui()
 
     reset_btn.connect("clicked", on_reset_dpi)
     btn_row.pack_start(reset_btn, False, False, 0)
@@ -1172,10 +1218,10 @@ def create_about_page():
 def apply_profile_to_ui(profile):
     app_state["_loading_profile"] = True
 
-    if "dpi_values" in profile and "dpi_scales" in app_state:
-        for i, val in enumerate(profile["dpi_values"]):
-            if i < len(app_state["dpi_scales"]):
-                app_state["dpi_scales"][i].set_value(val)
+    if "dpi_values" in profile:
+        app_state["dpi_values"] = list(profile["dpi_values"])
+        if "_rebuild_dpi_ui" in app_state:
+            app_state["_rebuild_dpi_ui"]()
 
     if "polling_hz" in profile and "polling_radios" in app_state:
         for hz, rb in app_state["polling_radios"].items():
