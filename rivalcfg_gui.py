@@ -498,6 +498,21 @@ def create_dpi_page():
         os.path.join(assets_dir, "trash.svg"), 16, 16, True
     )
 
+    add_btn = Gtk.Button(label="+ " + _("Add DPI"))
+    add_btn.set_halign(Gtk.Align.START)
+
+    def on_add_dpi(btn):
+        if len(app_state["dpi_values"]) >= 5:
+            return
+        app_state["dpi_values"].append(800)
+        rebuild_dpi_ui()
+        if not app_state.get("_loading_profile") and app_state["settings"].get("auto_apply"):
+            vals = app_state["dpi_values"]
+            run_rivalcfg(["--sensitivity", ",".join(str(v) for v in vals)])
+
+    add_btn.connect("clicked", on_add_dpi)
+    card.pack_start(add_btn, False, False, 0)
+
     def rebuild_dpi_ui():
         for child in presets_box.get_children():
             presets_box.remove(child)
@@ -560,22 +575,10 @@ def create_dpi_page():
             presets_box.pack_start(row, False, False, 0)
 
         presets_box.show_all()
+        add_btn.set_visible(len(app_state["dpi_values"]) < 5)
 
     app_state["_rebuild_dpi_ui"] = rebuild_dpi_ui
     rebuild_dpi_ui()
-
-    add_btn = Gtk.Button(label="+ " + _("Add DPI"))
-    add_btn.set_halign(Gtk.Align.START)
-
-    def on_add_dpi(btn):
-        app_state["dpi_values"].append(800)
-        rebuild_dpi_ui()
-        if not app_state.get("_loading_profile") and app_state["settings"].get("auto_apply"):
-            vals = app_state["dpi_values"]
-            run_rivalcfg(["--sensitivity", ",".join(str(v) for v in vals)])
-
-    add_btn.connect("clicked", on_add_dpi)
-    card.pack_start(add_btn, False, False, 0)
 
     btn_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
     btn_row.set_halign(Gtk.Align.START)
