@@ -41,6 +41,18 @@ except ImportError:
     print(_("python-gobject is not installed. Install: pacman -S python-gobject"))
     sys.exit(1)
 
+try:
+    from pynput import mouse as pynput_mouse
+    PYNPUT_AVAILABLE = True
+except ImportError:
+    PYNPUT_AVAILABLE = False
+
+try:
+    import Xlib
+    X11_AVAILABLE = True
+except ImportError:
+    X11_AVAILABLE = False
+
 # Check rivalcfg CLI availability
 try:
     subprocess.run(["rivalcfg"], capture_output=True, timeout=5)
@@ -62,6 +74,11 @@ DEFAULT_SETTINGS = {
     "accent_color": "#e84545",
     "language": "en",
     "active_profile": "Default",
+    "macro_enabled": False,
+    "macro_cps": 10,
+    "macro_trigger_key": "f6",
+    "macro_mode": "toggle",
+    "macro_button": "left",
 }
 
 
@@ -134,6 +151,7 @@ def list_profiles():
 
 def save_profile(name):
     ensure_profiles_dir()
+    s = app_state.get("settings", {})
     profile = {
         "dpi_values": app_state.get("dpi_values", [800, 1600]),
         "polling_hz": app_state.get("polling_hz", 1000),
@@ -143,6 +161,11 @@ def save_profile(name):
         "z4_hex": app_state.get("z4_hex", "ff6600"),
         "selected_effect": app_state.get("selected_effect", "steady"),
         "button_mapping": app_state.get("button_mapping", {}),
+        "macro_enabled": s.get("macro_enabled", False),
+        "macro_cps": s.get("macro_cps", 10),
+        "macro_trigger_key": s.get("macro_trigger_key", "f6"),
+        "macro_mode": s.get("macro_mode", "toggle"),
+        "macro_button": s.get("macro_button", "left"),
     }
     path = os.path.join(PROFILES_DIR, f"{name}.json")
     with open(path, "w") as f:
@@ -467,6 +490,197 @@ def rgba_to_hex(rgba):
     g = int(rgba.green * 255)
     b = int(rgba.blue * 255)
     return f"{r:02x}{g:02x}{b:02x}"
+
+
+class MacroEngine:
+    """Software auto-clicker engine using Xlib polling for key detection."""
+
+    def __init__(self):
+        self.click_thread = None
+        self.monitor_thread = None
+        self.running = False
+        self.active = False
+        self._stop_event = threading.Event()
+        self.mouse_ctrl = pynput_mouse.Controller()
+        self._disp = None
+        self._keycode = None
+        self._keymap_index = None
+        self._keymap_bit = None
+
+    def _resolve_keycode(self, trigger_key):
+        from Xlib import display as xd, XK
+        name_map = {
+            "enter": "Return", "tab": "Tab",
+            "backspace": "BackSpace", "delete": "Delete",
+            "insert": "Insert", "menu": "Menu", "pause": "Pause",
+            "print_screen": "Print", "scroll_lock": "Scroll_Lock",
+            "caps_lock": "Caps_Lock", "num_lock": "Num_Lock",
+            "shift": "Shift_L", "ctrl": "Control_L", "alt": "Alt_L",
+            "cmd": "Super_L", "super": "Super_L",
+            "up": "Up", "down": "Down", "left": "Left", "right": "Right",
+            "home": "Home", "end": "End",
+            "page_up": "Page_Up", "page_down": "Page_Down",
+            "escape": "Escape",
+        }
+        name = name_map.get(trigger_key)
+        if not name:
+            name = trigger_key.upper()
+        ks = XK.string_to_keysym(name)
+        if not ks:
+            ks = XK.string_to_keysym(trigger_key)
+        if not ks:
+            return None
+        disp = xd.Display()
+        try:
+            return disp.keysym_to_keycode(ks)
+        finally:
+            disp.close()
+
+    def _ensure_display(self):
+        if self._disp is None:
+            from Xlib import display as xd
+            self._disp = xd.Display()
+            self._disp.sync()
+        return self._disp
+
+    def _close_display(self):
+        if self._disp is not None:
+            try:
+                self._disp.close()
+            except Exception:
+                pass
+            self._disp = None
+
+    def start(self, cps, trigger_key, mode, button):
+        self.stop()
+        self.running = True
+        self._stop_event.clear()
+
+        btn_map = {"left": pynput_mouse.Button.left,
+                   "right": pynput_mouse.Button.right,
+                   "middle": pynput_mouse.Button.middle}
+        btn = btn_map.get(button, pynput_mouse.Button.left)
+        interval = 1.0 / cps
+        is_mouse_trigger = trigger_key.startswith("mouse_")
+
+        if is_mouse_trigger:
+            mouse_btn_map = {
+                "mouse_left": pynput_mouse.Button.left,
+                "mouse_right": pynput_mouse.Button.right,
+                "mouse_middle": pynput_mouse.Button.middle,
+                "mouse_x1": pynput_mouse.Button.button8,
+                "mouse_x2": pynput_mouse.Button.button9,
+            }
+            mbtn = mouse_btn_map.get(trigger_key)
+
+            def on_click(x, y, btn_pressed, pressed):
+                if btn_pressed == mbtn:
+                    if pressed:
+                        if mode == "toggle":
+                            self.active = not self.active
+                        elif mode == "hold":
+                            self.active = True
+                        GLib.idle_add(self._update_status)
+                    else:
+                        if mode == "hold":
+                            self.active = False
+                            GLib.idle_add(self._update_status)
+
+            self.monitor_thread = pynput_mouse.Listener(on_click=on_click)
+            self.monitor_thread.daemon = True
+            self.monitor_thread.start()
+        else:
+            if not X11_AVAILABLE:
+                logging.error("X11 not available for keyboard monitoring")
+                return
+            try:
+                if trigger_key.startswith("kc:"):
+                    parts = trigger_key.split(":", 2)
+                    kc = int(parts[1])
+                else:
+                    kc = self._resolve_keycode(trigger_key)
+                if kc is None:
+                    logging.error(f"Could not find keycode for {trigger_key}")
+                    return
+                self._keycode = kc
+                self._keymap_index = kc // 8
+                self._keymap_bit = 1 << (kc % 8)
+            except Exception as e:
+                logging.error(f"X11 keycode lookup failed: {e}")
+                return
+
+            def monitor():
+                poll_interval = max(0.005, interval / 4)
+                disp = self._ensure_display()
+                try:
+                    disp.sync()
+                    data = disp.query_keymap()
+                    prev_down = bool(data[self._keymap_index] & self._keymap_bit)
+                except Exception:
+                    self._close_display()
+                    disp = self._ensure_display()
+                    prev_down = False
+
+                while not self._stop_event.is_set():
+                    try:
+                        disp.sync()
+                        data = disp.query_keymap()
+                        is_down = bool(data[self._keymap_index] & self._keymap_bit)
+
+                        if is_down and not prev_down:
+                            if mode == "toggle":
+                                self.active = not self.active
+                            elif mode == "hold":
+                                self.active = True
+                            GLib.idle_add(self._update_status)
+                        elif not is_down and prev_down:
+                            if mode == "hold":
+                                self.active = False
+                                GLib.idle_add(self._update_status)
+
+                        prev_down = is_down
+                    except Exception:
+                        self._close_display()
+                        disp = self._ensure_display()
+                        self._stop_event.wait(0.01)
+                        continue
+
+                    self._stop_event.wait(poll_interval)
+
+            self.monitor_thread = threading.Thread(target=monitor, daemon=True)
+            self.monitor_thread.start()
+
+        def click_loop():
+            while not self._stop_event.is_set():
+                if self.active:
+                    self.mouse_ctrl.click(btn)
+                self._stop_event.wait(interval)
+
+        self.click_thread = threading.Thread(target=click_loop, daemon=True)
+        self.click_thread.start()
+
+    def stop(self):
+        self.running = False
+        self.active = False
+        self._stop_event.set()
+        self.monitor_thread = None
+        self.click_thread = None
+        self._close_display()
+        GLib.idle_add(self._update_status)
+
+    def _update_status(self):
+        active = self.active
+        dot = app_state.get("macro_status_dot")
+        label = app_state.get("macro_status_label")
+        if dot and label:
+            if active:
+                dot.get_style_context().remove_class("status-running")
+                dot.get_style_context().add_class("status-ok")
+                label.set_text(_("Macro running"))
+            else:
+                dot.get_style_context().remove_class("status-ok")
+                dot.get_style_context().add_class("status-running")
+                label.set_text(_("Macro stopped"))
 
 
 def create_dpi_page():
@@ -1115,6 +1329,280 @@ def create_buttons_page():
 
     card.pack_start(overlay, True, True, 0)
 
+    # --- MACRO SETTINGS ---
+    macro_card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
+    macro_card.get_style_context().add_class("card")
+    macro_card.set_margin_top(16)
+
+    macro_title = Gtk.Label(label=_("MACRO / AUTO CLICKER"))
+    macro_title.get_style_context().add_class("card-title")
+    macro_title.set_halign(Gtk.Align.START)
+    macro_card.pack_start(macro_title, False, False, 0)
+
+    enable_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=16)
+    enable_row.get_style_context().add_class("setting-row")
+
+    enable_text = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
+    enable_text.set_hexpand(True)
+    enable_label = Gtk.Label(label=_("Macro / Auto Clicker"))
+    enable_label.get_style_context().add_class("setting-label")
+    enable_label.set_halign(Gtk.Align.START)
+    enable_desc = Gtk.Label(label=_("Enable auto-click macro"))
+    enable_desc.get_style_context().add_class("setting-desc")
+    enable_desc.set_halign(Gtk.Align.START)
+    enable_text.pack_start(enable_label, False, False, 0)
+    enable_text.pack_start(enable_desc, False, False, 0)
+    enable_row.pack_start(enable_text, True, True, 0)
+
+    macro_switch = Gtk.Switch()
+    macro_switch.set_active(app_state["settings"].get("macro_enabled", False))
+    enable_row.pack_start(macro_switch, False, False, 0)
+    macro_card.pack_start(enable_row, False, False, 0)
+
+    macro_settings_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+    macro_settings_box.set_visible(app_state["settings"].get("macro_enabled", False))
+
+    cps_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+    cps_row.get_style_context().add_class("setting-row")
+    cps_label = Gtk.Label(label=_("Clicks per second:"))
+    cps_label.set_halign(Gtk.Align.START)
+    cps_label.set_size_request(150, -1)
+    cps_adjustment = Gtk.Adjustment(
+        value=app_state["settings"].get("macro_cps", 10), lower=1, upper=50, step_increment=1
+    )
+    cps_spin = Gtk.SpinButton(adjustment=cps_adjustment, climb_rate=1, digits=0)
+    cps_spin.set_size_request(80, -1)
+    cps_row.pack_start(cps_label, False, False, 0)
+    cps_row.pack_end(cps_spin, False, False, 0)
+    macro_settings_box.pack_start(cps_row, False, False, 0)
+
+    current_trigger = app_state["settings"].get("macro_trigger_key", "f6")
+    if current_trigger.startswith("kc:"):
+        parts = current_trigger.split(":", 2)
+        key_name = parts[2] if len(parts) > 2 else ""
+        display_init = key_name.upper() if key_name else f"Key {parts[1]}"
+    else:
+        display_init = current_trigger.upper()
+    key_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+    key_row.get_style_context().add_class("setting-row")
+    key_label = Gtk.Label(label=_("Trigger key:"))
+    key_label.set_halign(Gtk.Align.START)
+    key_label.set_size_request(150, -1)
+    key_display = Gtk.Label(label=display_init)
+    key_display.set_halign(Gtk.Align.START)
+    key_display.set_size_request(80, -1)
+    key_display.get_style_context().add_class("setting-label")
+    key_set_btn = Gtk.Button(label=_("Set Key..."))
+    key_set_btn.set_size_request(90, -1)
+    key_row.pack_start(key_label, False, False, 0)
+    key_row.pack_end(key_set_btn, False, False, 0)
+    key_row.pack_end(key_display, False, False, 0)
+    macro_settings_box.pack_start(key_row, False, False, 0)
+
+    mode_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+    mode_row.get_style_context().add_class("setting-row")
+    mode_label = Gtk.Label(label=_("Mode:"))
+    mode_label.set_halign(Gtk.Align.START)
+    mode_label.set_size_request(150, -1)
+    mode_combo = Gtk.ComboBoxText()
+    mode_combo.append_text(_("Toggle (press once to start/stop)"))
+    mode_combo.append_text(_("Hold (click while held)"))
+    current_mode = app_state["settings"].get("macro_mode", "toggle")
+    mode_combo.set_active(0 if current_mode == "toggle" else 1)
+    mode_row.pack_start(mode_label, False, False, 0)
+    mode_row.pack_end(mode_combo, False, False, 0)
+    macro_settings_box.pack_start(mode_row, False, False, 0)
+
+    btn_macro_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+    btn_macro_row.get_style_context().add_class("setting-row")
+    btn_macro_label = Gtk.Label(label=_("Mouse button:"))
+    btn_macro_label.set_halign(Gtk.Align.START)
+    btn_macro_label.set_size_request(150, -1)
+    btn_macro_combo = Gtk.ComboBoxText()
+    btn_macro_combo.append_text(_("Left Click"))
+    btn_macro_combo.append_text(_("Right Click"))
+    btn_macro_combo.append_text(_("Middle Click"))
+    current_btn = app_state["settings"].get("macro_button", "left")
+    btn_values = ["left", "right", "middle"]
+    btn_macro_combo.set_active(btn_values.index(current_btn) if current_btn in btn_values else 0)
+    btn_macro_row.pack_start(btn_macro_label, False, False, 0)
+    btn_macro_row.pack_end(btn_macro_combo, False, False, 0)
+    macro_settings_box.pack_start(btn_macro_row, False, False, 0)
+
+    status_macro_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+    status_macro_row.set_margin_top(8)
+    macro_status_dot = Gtk.Label(label="●")
+    macro_status_dot.get_style_context().add_class("status-running")
+    macro_status_label = Gtk.Label(label=_("Macro stopped"))
+    macro_status_label.get_style_context().add_class("setting-desc")
+    status_macro_row.pack_start(macro_status_dot, False, False, 0)
+    status_macro_row.pack_start(macro_status_label, False, False, 0)
+    macro_settings_box.pack_start(status_macro_row, False, False, 0)
+
+    app_state["macro_switch"] = macro_switch
+    app_state["macro_cps_spin"] = cps_spin
+    app_state["macro_key_display"] = key_display
+    app_state["macro_mode_combo"] = mode_combo
+    app_state["macro_btn_combo"] = btn_macro_combo
+    app_state["macro_settings_box"] = macro_settings_box
+    app_state["macro_status_dot"] = macro_status_dot
+    app_state["macro_status_label"] = macro_status_label
+    app_state["macro_card"] = macro_card
+
+    macro_card.pack_start(macro_settings_box, False, False, 0)
+    card.pack_start(macro_card, False, False, 0)
+
+    def restart_macro():
+        if app_state.get("_loading_profile"):
+            return
+        if not PYNPUT_AVAILABLE:
+            macro_status_label.set_text(_("pynput not installed"))
+            return
+        engine = app_state.get("macro_engine")
+        if engine:
+            engine.stop()
+        enabled = macro_switch.get_active()
+        if enabled:
+            cps = int(cps_spin.get_value())
+            mode_idx = mode_combo.get_active()
+            mode = "toggle" if mode_idx == 0 else "hold"
+            btn_idx = btn_macro_combo.get_active()
+            btn_val = btn_values[btn_idx] if 0 <= btn_idx < len(btn_values) else "left"
+            key_val = app_state["settings"].get("macro_trigger_key", "f6")
+            engine = app_state.get("macro_engine")
+            if engine:
+                engine.start(cps, key_val, mode, btn_val)
+
+    app_state["restart_macro"] = restart_macro
+
+    def on_macro_switch(s, *a):
+        val = macro_switch.get_active()
+        app_state["settings"]["macro_enabled"] = val
+        macro_settings_box.set_visible(val)
+        save_settings()
+        restart_macro()
+
+    macro_switch.connect("notify::active", on_macro_switch)
+
+    def on_cps_changed(s):
+        app_state["settings"]["macro_cps"] = int(s.get_value())
+        save_settings()
+        restart_macro()
+
+    cps_spin.connect("value-changed", on_cps_changed)
+
+    def on_mode_changed(combo):
+        idx = combo.get_active()
+        app_state["settings"]["macro_mode"] = "toggle" if idx == 0 else "hold"
+        save_settings()
+        restart_macro()
+
+    mode_combo.connect("changed", on_mode_changed)
+
+    def on_btn_macro_changed(combo):
+        idx = combo.get_active()
+        if 0 <= idx < len(btn_values):
+            app_state["settings"]["macro_button"] = btn_values[idx]
+            save_settings()
+            restart_macro()
+
+    btn_macro_combo.connect("changed", on_btn_macro_changed)
+
+    def on_set_key(btn):
+        if not PYNPUT_AVAILABLE:
+            return
+        dialog = Gtk.Dialog(
+            title=_("Set Trigger Key"),
+            parent=app_state["window"],
+            flags=Gtk.DialogFlags.MODAL,
+        )
+        dialog.set_default_size(350, 150)
+        box = dialog.get_content_area()
+        box.set_margin_start(16)
+        box.set_margin_end(16)
+        box.set_margin_top(16)
+        box.set_margin_bottom(16)
+        lbl = Gtk.Label(label=_("Press any key or click a mouse button...\nESC to cancel"))
+        lbl.set_halign(Gtk.Align.CENTER)
+        box.pack_start(lbl, True, True, 0)
+        dialog.show_all()
+
+        captured = [None]
+        key_normalize = {
+            "return": "enter", "kp_enter": "enter",
+            "shift_l": "shift", "shift_r": "shift",
+            "control_l": "ctrl", "control_r": "ctrl",
+            "alt_l": "alt", "alt_r": "alt",
+            "super_l": "cmd", "super_r": "cmd",
+        }
+
+        def on_key(widget, event):
+            keyval = event.keyval
+            keyname = Gdk.keyval_name(keyval)
+            hw_kc = event.hardware_keycode
+            if keyname:
+                kn = keyname.lower()
+                if kn == 'escape':
+                    captured[0] = '__cancel__'
+                else:
+                    normalized = key_normalize.get(kn, kn)
+                    captured[0] = f"kc:{hw_kc}:{normalized}"
+            else:
+                captured[0] = f"kc:{hw_kc}:key_{keyval}"
+            dialog.response(1)
+            return True
+
+        dialog.connect("key-press-event", on_key)
+
+        def on_mouse_btn(widget, event):
+            btn = event.button
+            btn_map = {1: "mouse_left", 2: "mouse_middle", 3: "mouse_right",
+                       8: "mouse_x1", 9: "mouse_x2"}
+            if btn in btn_map:
+                captured[0] = btn_map[btn]
+                dialog.response(1)
+            return True
+
+        dialog.connect("button-press-event", on_mouse_btn)
+
+        dialog.run()
+        dialog.destroy()
+
+        if captured[0] and captured[0] != '__cancel__':
+            key_val = captured[0]
+            app_state["settings"]["macro_trigger_key"] = key_val
+            display_names = {
+                "enter": "Enter", "space": "Space", "tab": "Tab",
+                "backspace": "Backspace", "delete": "Delete",
+                "shift": "Shift", "ctrl": "Ctrl", "alt": "Alt", "cmd": "Super",
+                "up": "↑ Up", "down": "↓ Down", "left": "← Left", "right": "→ Right",
+                "home": "Home", "end": "End", "page_up": "Pg Up", "page_down": "Pg Dn",
+                "caps_lock": "Caps Lock", "num_lock": "Num Lock",
+                "insert": "Insert", "menu": "Menu", "pause": "Pause",
+                "print_screen": "PrtSc", "scroll_lock": "Scroll Lock",
+            }
+            if key_val.startswith("kc:"):
+                parts = key_val.split(":", 2)
+                key_name = parts[2] if len(parts) > 2 else ""
+                if key_name in display_names:
+                    display = display_names[key_name]
+                elif key_name:
+                    display = key_name.upper()
+                else:
+                    display = f"Key {parts[1]}"
+            elif key_val.startswith("mouse_"):
+                btn_name = key_val.replace("mouse_", "").title()
+                display = f"Mouse {btn_name}"
+            elif key_val in display_names:
+                display = display_names[key_val]
+            else:
+                display = key_val.upper()
+            key_display.set_text(display)
+            save_settings()
+            restart_macro()
+
+    key_set_btn.connect("clicked", on_set_key)
+
     btn_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
     btn_row.set_halign(Gtk.Align.START)
     btn_row.set_margin_top(12)
@@ -1292,7 +1780,44 @@ def apply_profile_to_ui(profile):
         if "redraw_buttons" in app_state:
             app_state["redraw_buttons"]()
 
+    if "macro_enabled" in profile:
+        app_state["settings"]["macro_enabled"] = profile["macro_enabled"]
+        app_state["settings"]["macro_cps"] = profile.get("macro_cps", 10)
+        app_state["settings"]["macro_trigger_key"] = profile.get("macro_trigger_key", "f6")
+        app_state["settings"]["macro_mode"] = profile.get("macro_mode", "toggle")
+        app_state["settings"]["macro_button"] = profile.get("macro_button", "left")
+        sw = app_state.get("macro_switch")
+        if sw:
+            sw.set_active(profile["macro_enabled"])
+        sb = app_state.get("macro_settings_box")
+        if sb:
+            sb.set_visible(profile["macro_enabled"])
+        sp = app_state.get("macro_cps_spin")
+        if sp:
+            sp.set_value(profile.get("macro_cps", 10))
+        kd = app_state.get("macro_key_display")
+        if kd:
+            val = profile.get("macro_trigger_key", "f6")
+            if val.startswith("kc:"):
+                parts = val.split(":", 2)
+                key_name = parts[2] if len(parts) > 2 else ""
+                kd.set_text(key_name.upper() if key_name else f"Key {parts[1]}")
+            else:
+                kd.set_text(val.upper())
+        mc = app_state.get("macro_mode_combo")
+        if mc:
+            mc.set_active(0 if profile.get("macro_mode", "toggle") == "toggle" else 1)
+        bc = app_state.get("macro_btn_combo")
+        if bc:
+            bvals = ["left", "right", "middle"]
+            bv = profile.get("macro_button", "left")
+            bc.set_active(bvals.index(bv) if bv in bvals else 0)
+
     app_state["_loading_profile"] = False
+    if "macro_enabled" in profile and profile["macro_enabled"]:
+        rm = app_state.get("restart_macro")
+        if rm:
+            rm()
 
 
 def apply_all_to_device():
@@ -1775,10 +2300,19 @@ def create_window():
     lang = app_state["settings"].get("language", None)
     _set_language(lang)
 
+    if PYNPUT_AVAILABLE:
+        app_state["macro_engine"] = MacroEngine()
+
     window = Gtk.Window(title="RivalCFG GUI")
     window.set_default_size(1280, 720)
     window.set_resizable(True)
-    window.connect("destroy", Gtk.main_quit)
+
+    def on_destroy(*a):
+        if app_state.get("macro_engine"):
+            app_state["macro_engine"].stop()
+        Gtk.main_quit()
+
+    window.connect("destroy", on_destroy)
     window.set_wmclass("rivalcfg-gui", "RivalCFG GUI")
 
     icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "logo.png")
