@@ -24,5 +24,5 @@ Exec=/usr/share/rivalcfg-gui/rivalcfg_gui.py
 Icon=/usr/share/rivalcfg-gui/logo.png
 Terminal=false
 Categories=Utility;Settings;
-StartupWMClass=rivalcfg_gui.py
+StartupWMClass=rivalcfg-gui
 EOF

@@ -1721,6 +1721,13 @@ def rebuild_ui():
     for child in window.get_children():
         window.remove(child)
 
+    window.set_wmclass("rivalcfg-gui", "RivalCFG GUI")
+    icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "logo.png")
+    if os.path.exists(icon_path):
+        icon_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(icon_path, 128, 128, True)
+        window.set_icon(icon_pixbuf)
+        Gtk.Window.set_default_icon_from_file(icon_path)
+
     app_state["nav_buttons"] = []
     app_state["is_rebuild"] = True
     create_window_content(window)
@@ -1772,11 +1779,13 @@ def create_window():
     window.set_default_size(1280, 720)
     window.set_resizable(True)
     window.connect("destroy", Gtk.main_quit)
+    window.set_wmclass("rivalcfg-gui", "RivalCFG GUI")
 
     icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "logo.png")
     if os.path.exists(icon_path):
         icon_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(icon_path, 128, 128, True)
         window.set_icon(icon_pixbuf)
+        Gtk.Window.set_default_icon_from_file(icon_path)
 
     app_state["window"] = window
 
@@ -2172,6 +2181,7 @@ def create_window_content(window):
 
 
 def main():
+    GLib.set_prgname("rivalcfg-gui")
     setup_logging()
     logging.info("Application started")
     create_window()

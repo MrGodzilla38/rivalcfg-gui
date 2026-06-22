@@ -35,9 +35,9 @@ Type=Application
 Name=RivalCFG GUI
 Comment=SteelSeries mouse configuration tool
 Exec=/usr/share/${pkgname}/rivalcfg_gui.py
-Icon=/usr/share/${pkgname}/logo.png
+Icon=/usr/share/${pkgname}/assets/logo.png
 Terminal=false
 Categories=Utility;Settings;
-StartupWMClass=rivalcfg_gui.py
+StartupWMClass=rivalcfg-gui
 EOF
 }
