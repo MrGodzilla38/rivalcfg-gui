@@ -48,6 +48,12 @@ except ImportError:
     PYNPUT_AVAILABLE = False
 
 try:
+    import evdev
+    EVDEV_AVAILABLE = True
+except ImportError:
+    EVDEV_AVAILABLE = False
+
+try:
     import Xlib
     X11_AVAILABLE = True
 except ImportError:
@@ -492,8 +498,49 @@ def rgba_to_hex(rgba):
     return f"{r:02x}{g:02x}{b:02x}"
 
 
+def _x11_to_linux_keycode(x11_kc):
+    """Convert X11 keycode to Linux input keycode using display min_keycode offset."""
+    if not X11_AVAILABLE:
+        return x11_kc
+    try:
+        from Xlib import display as xd
+        d = xd.Display()
+        try:
+            min_kc = d.display.info.min_keycode
+            return x11_kc - min_kc
+        finally:
+            d.close()
+    except Exception:
+        pass
+    return x11_kc
+
+
+def _find_keyboard_device():
+    """Find the first physical keyboard input device path.
+    Prefers 1.0 (main keyboard) over 1.1 (media keys) interface.
+    """
+    from glob import glob
+    paths = sorted(glob("/dev/input/by-path/*-event-kbd"))
+    if paths:
+        one_point_zero = [p for p in paths if ":1.0-event-kbd" in p]
+        if one_point_zero:
+            return one_point_zero[0]
+        return paths[0]
+    paths = sorted(glob("/dev/input/event*"))
+    for p in paths:
+        try:
+            dev = evdev.InputDevice(p)
+            caps = dev.capabilities()
+            dev.close()
+            if caps.get(evdev.ecodes.EV_KEY):
+                return p
+        except Exception:
+            continue
+    return None
+
+
 class MacroEngine:
-    """Software auto-clicker engine using Xlib polling for key detection."""
+    """Software auto-clicker engine using evdev event-based key detection."""
 
     def __init__(self):
         self.click_thread = None
@@ -502,10 +549,9 @@ class MacroEngine:
         self.active = False
         self._stop_event = threading.Event()
         self.mouse_ctrl = pynput_mouse.Controller()
-        self._disp = None
-        self._keycode = None
-        self._keymap_index = None
-        self._keymap_bit = None
+        self._device_path = None
+        self._device = None
+        self._helper_proc = None
 
     def _resolve_keycode(self, trigger_key):
         from Xlib import display as xd, XK
@@ -536,20 +582,35 @@ class MacroEngine:
         finally:
             disp.close()
 
-    def _ensure_display(self):
-        if self._disp is None:
-            from Xlib import display as xd
-            self._disp = xd.Display()
-            self._disp.sync()
-        return self._disp
+    def _ensure_device(self):
+        if self._device is not None:
+            return self._device
+        if self._device_path is None:
+            self._device_path = _find_keyboard_device()
+        if self._device_path is None:
+            return None
+        try:
+            self._device = evdev.InputDevice(self._device_path)
+            return self._device
+        except PermissionError:
+            return None
+        except Exception:
+            self._device_path = None
+            return None
 
-    def _close_display(self):
-        if self._disp is not None:
+    def _close_device(self):
+        if self._helper_proc is not None:
             try:
-                self._disp.close()
+                self._helper_proc.terminate()
             except Exception:
                 pass
-            self._disp = None
+            self._helper_proc = None
+        if self._device is not None:
+            try:
+                self._device.close()
+            except Exception:
+                pass
+            self._device = None
 
     def start(self, cps, trigger_key, mode, button):
         self.stop()
@@ -590,65 +651,129 @@ class MacroEngine:
             self.monitor_thread.daemon = True
             self.monitor_thread.start()
         else:
-            if not X11_AVAILABLE:
-                logging.error("X11 not available for keyboard monitoring")
+            if not EVDEV_AVAILABLE:
+                logging.error("evdev not available for keyboard monitoring")
                 return
-            try:
-                if trigger_key.startswith("kc:"):
-                    parts = trigger_key.split(":", 2)
-                    kc = int(parts[1])
-                else:
-                    kc = self._resolve_keycode(trigger_key)
-                if kc is None:
-                    logging.error(f"Could not find keycode for {trigger_key}")
+            if trigger_key.startswith("kc:"):
+                parts = trigger_key.split(":", 2)
+                linux_kc = int(parts[1])
+            else:
+                x11_kc = self._resolve_keycode(trigger_key)
+                if x11_kc is None:
+                    logging.error(f"Could not resolve keycode for '{trigger_key}'")
                     return
-                self._keycode = kc
-                self._keymap_index = kc // 8
-                self._keymap_bit = 1 << (kc % 8)
-            except Exception as e:
-                logging.error(f"X11 keycode lookup failed: {e}")
-                return
-
-            def monitor():
-                poll_interval = max(0.005, interval / 4)
-                disp = self._ensure_display()
+                from Xlib import display as xd
+                d = xd.Display()
                 try:
-                    disp.sync()
-                    data = disp.query_keymap()
-                    prev_down = bool(data[self._keymap_index] & self._keymap_bit)
-                except Exception:
-                    self._close_display()
-                    disp = self._ensure_display()
-                    prev_down = False
+                    min_kc = d.display.info.min_keycode
+                finally:
+                    d.close()
+                linux_kc = x11_kc - min_kc
 
-                while not self._stop_event.is_set():
-                    try:
-                        disp.sync()
-                        data = disp.query_keymap()
-                        is_down = bool(data[self._keymap_index] & self._keymap_bit)
+            def monitor_direct(dev):
+                try:
+                    for event in dev.read_loop():
+                        if self._stop_event.is_set():
+                            break
+                        if event.type == evdev.ecodes.EV_KEY:
+                            e = evdev.categorize(event)
+                            if e.scancode == linux_kc:
+                                if e.keystate == e.key_down:
+                                    if mode == "toggle":
+                                        self.active = not self.active
+                                    elif mode == "hold":
+                                        self.active = True
+                                    GLib.idle_add(self._update_status)
+                                elif e.keystate == e.key_up:
+                                    if mode == "hold":
+                                        self.active = False
+                                        GLib.idle_add(self._update_status)
+                except Exception as e:
+                    logging.error(f"evdev direct error: {e}")
+                finally:
+                    self._close_device()
 
-                        if is_down and not prev_down:
-                            if mode == "toggle":
-                                self.active = not self.active
-                            elif mode == "hold":
-                                self.active = True
-                            GLib.idle_add(self._update_status)
-                        elif not is_down and prev_down:
-                            if mode == "hold":
-                                self.active = False
-                                GLib.idle_add(self._update_status)
+            def monitor_helper():
+                helper_path = os.path.join(
+                    os.path.dirname(os.path.abspath(__file__)), "evdev_helper"
+                )
+                if (not os.path.exists(helper_path) or
+                    not os.access(helper_path, os.X_OK)):
+                    logging.error(f"evdev_helper not found at {helper_path}")
+                    GLib.idle_add(self._set_status_text, _("Helper not found"))
+                    return
+                st_mode = os.stat(helper_path).st_mode
+                is_setuid = (st_mode & 0o4000) and (st_mode & 0o111)
+                if not is_setuid:
+                    logging.error("evdev_helper is not setuid root")
+                    GLib.idle_add(self._set_status_text,
+                                  _("Run: sudo chown root:root evdev_helper && sudo chmod u+s evdev_helper"))
+                    return
+                proc = None
+                try:
+                    logging.info("Launching helper: %s --device %s --keycode %s",
+                                 helper_path, self._device_path, linux_kc)
+                    proc = subprocess.Popen(
+                        [helper_path, "--device", self._device_path,
+                         "--keycode", str(linux_kc)],
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE
+                    )
+                    self._helper_proc = proc
+                    def read_stderr():
+                        for line in proc.stderr:
+                            line = line.decode().strip()
+                            if line:
+                                logging.error(f"helper stderr: {line}")
+                    threading.Thread(target=read_stderr, daemon=True).start()
+                    for line in proc.stdout:
+                        if self._stop_event.is_set():
+                            break
+                        try:
+                            data = json.loads(line.decode().strip())
+                            if data.get("key") == linux_kc:
+                                if data.get("state") == "down":
+                                    if mode == "toggle":
+                                        self.active = not self.active
+                                    elif mode == "hold":
+                                        self.active = True
+                                    GLib.idle_add(self._update_status)
+                                elif data.get("state") == "up":
+                                    if mode == "hold":
+                                        self.active = False
+                                        GLib.idle_add(self._update_status)
+                        except (json.JSONDecodeError, KeyError):
+                            continue
+                except Exception as e:
+                    logging.error(f"evdev helper error: {e}")
+                    GLib.idle_add(self._set_status_text, _("Helper error"))
+                finally:
+                    if proc is not None:
+                        try:
+                            proc.terminate()
+                        except Exception:
+                            pass
+                        try:
+                            proc.wait(timeout=2)
+                        except Exception:
+                            pass
+                    self._helper_proc = None
+                    self._close_device()
 
-                        prev_down = is_down
-                    except Exception:
-                        self._close_display()
-                        disp = self._ensure_display()
-                        self._stop_event.wait(0.01)
-                        continue
-
-                    self._stop_event.wait(poll_interval)
-
-            self.monitor_thread = threading.Thread(target=monitor, daemon=True)
-            self.monitor_thread.start()
+            dev = self._ensure_device()
+            if dev is not None:
+                self.monitor_thread = threading.Thread(
+                    target=monitor_direct, args=(dev,), daemon=True
+                )
+                self.monitor_thread.start()
+            elif self._device_path is not None:
+                self.monitor_thread = threading.Thread(
+                    target=monitor_helper, daemon=True
+                )
+                self.monitor_thread.start()
+            else:
+                logging.error("No keyboard device found")
+                GLib.idle_add(self._set_status_text, _("No keyboard device"))
 
         def click_loop():
             while not self._stop_event.is_set():
@@ -663,10 +788,28 @@ class MacroEngine:
         self.running = False
         self.active = False
         self._stop_event.set()
-        self.monitor_thread = None
-        self.click_thread = None
-        self._close_display()
+        if self._helper_proc is not None:
+            try:
+                self._helper_proc.terminate()
+            except Exception:
+                pass
+            self._helper_proc = None
+        if self.monitor_thread is not None:
+            self.monitor_thread.join(timeout=2)
+            self.monitor_thread = None
+        if self.click_thread is not None:
+            self.click_thread.join(timeout=2)
+            self.click_thread = None
+        self._close_device()
         GLib.idle_add(self._update_status)
+
+    def _set_status_text(self, text):
+        dot = app_state.get("macro_status_dot")
+        label = app_state.get("macro_status_label")
+        if dot and label:
+            dot.get_style_context().remove_class("status-ok")
+            dot.get_style_context().add_class("status-running")
+            label.set_text(text)
 
     def _update_status(self):
         active = self.active
@@ -1362,6 +1505,13 @@ def create_buttons_page():
     macro_settings_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
     macro_settings_box.set_visible(app_state["settings"].get("macro_enabled", False))
 
+    if not EVDEV_AVAILABLE:
+        evdev_warn = Gtk.Label(label=_("evdev module not installed.\nInstall: python-evdev"))
+        evdev_warn.get_style_context().add_class("setting-desc")
+        evdev_warn.set_halign(Gtk.Align.START)
+        evdev_warn.set_margin_bottom(8)
+        macro_settings_box.pack_start(evdev_warn, False, False, 0)
+
     cps_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
     cps_row.get_style_context().add_class("setting-row")
     cps_label = Gtk.Label(label=_("Clicks per second:"))
@@ -1540,15 +1690,16 @@ def create_buttons_page():
             keyval = event.keyval
             keyname = Gdk.keyval_name(keyval)
             hw_kc = event.hardware_keycode
+            linux_kc = _x11_to_linux_keycode(hw_kc)
             if keyname:
                 kn = keyname.lower()
                 if kn == 'escape':
                     captured[0] = '__cancel__'
                 else:
                     normalized = key_normalize.get(kn, kn)
-                    captured[0] = f"kc:{hw_kc}:{normalized}"
+                    captured[0] = f"kc:{linux_kc}:{normalized}"
             else:
-                captured[0] = f"kc:{hw_kc}:key_{keyval}"
+                captured[0] = f"kc:{linux_kc}:key_{keyval}"
             dialog.response(1)
             return True
 
