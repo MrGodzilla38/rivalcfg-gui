@@ -612,6 +612,40 @@ class MacroEngine:
                 pass
             self._device = None
 
+    def _ensure_helper_setup(self):
+        """Ensure evdev_helper exists and is setuid root. Shows pkexec dialog if needed."""
+        helper_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "evdev_helper")
+        if not os.path.exists(helper_path):
+            logging.error("evdev_helper binary not found")
+            return False
+        st = os.stat(helper_path)
+        if (st.st_mode & 0o4000) and (st.st_uid == 0):
+            return True
+        logging.info("Helper not setuid, trying pkexec setup...")
+        GLib.idle_add(self._set_status_text, _("Setting up helper (enter password)..."))
+        try:
+            proc = subprocess.Popen(
+                ["pkexec", "sh", "-c",
+                 f"chown root:root '{helper_path}' && chmod u+s '{helper_path}'"],
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            )
+            ret = proc.wait(timeout=60)
+            if ret == 0:
+                st = os.stat(helper_path)
+                if (st.st_mode & 0o4000) and (st.st_uid == 0):
+                    logging.info("Helper set up successfully via pkexec")
+                    return True
+            else:
+                err = proc.stderr.read().decode().strip()
+                logging.error(f"pkexec setup failed (exit={ret}): {err}")
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            proc.wait()
+            logging.error("pkexec setup timed out")
+        except Exception as e:
+            logging.error(f"pkexec setup error: {e}")
+        return False
+
     def start(self, cps, trigger_key, mode, button):
         self.stop()
         self.running = True
@@ -694,21 +728,12 @@ class MacroEngine:
                     self._close_device()
 
             def monitor_helper():
+                if not self._ensure_helper_setup():
+                    GLib.idle_add(self._set_status_text, _("Helper setup failed"))
+                    return
                 helper_path = os.path.join(
                     os.path.dirname(os.path.abspath(__file__)), "evdev_helper"
                 )
-                if (not os.path.exists(helper_path) or
-                    not os.access(helper_path, os.X_OK)):
-                    logging.error(f"evdev_helper not found at {helper_path}")
-                    GLib.idle_add(self._set_status_text, _("Helper not found"))
-                    return
-                st_mode = os.stat(helper_path).st_mode
-                is_setuid = (st_mode & 0o4000) and (st_mode & 0o111)
-                if not is_setuid:
-                    logging.error("evdev_helper is not setuid root")
-                    GLib.idle_add(self._set_status_text,
-                                  _("Run: sudo chown root:root evdev_helper && sudo chmod u+s evdev_helper"))
-                    return
                 proc = None
                 try:
                     logging.info("Launching helper: %s --device %s --keycode %s",
