@@ -2433,12 +2433,12 @@ def rebuild_ui():
     app_state["is_rebuild"] = True
     create_window_content(window)
 
+    window.show_all()
+
     active = app_state["settings"].get("active_profile", "Default")
     profile_data = load_profile_data(active)
     if profile_data:
         apply_profile_to_ui(profile_data)
-
-    window.show_all()
 
     if app_state["settings"]["startup_minimize"]:
         window.iconify()
@@ -2511,6 +2511,8 @@ def create_window():
 
     create_window_content(window)
 
+    window.show_all()
+
     active = app_state["settings"].get("active_profile", "Default")
     profiles = list_profiles()
     if active not in profiles:
@@ -2520,8 +2522,6 @@ def create_window():
     profile_data = load_profile_data(active)
     if profile_data:
         apply_profile_to_ui(profile_data)
-
-    window.show_all()
 
     if app_state["settings"]["startup_minimize"]:
         window.iconify()
