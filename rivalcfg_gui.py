@@ -2577,7 +2577,7 @@ def create_window_content(window):
     brand.set_margin_bottom(20)
     brand.set_halign(Gtk.Align.CENTER)
     brand.set_hexpand(True)
-    sidebar.pack_start(brand, True, False, 0)
+    sidebar.pack_start(brand, False, False, 0)
 
     def update_profile_selector_label(name):
         label = app_state.get("profile_label")
