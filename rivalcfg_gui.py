@@ -425,6 +425,18 @@ checkbutton:checked label {
     border: 1px solid #2a2a40;
     border-radius: 6px;
 }
+
+scrolledwindow scrollbar {
+    background: transparent;
+}
+scrolledwindow scrollbar slider {
+    background: #2a2a40;
+    border-radius: 4px;
+    min-width: 6px;
+}
+scrolledwindow scrollbar slider:hover {
+    background: #3a3a55;
+}
 """
 
 
@@ -2804,7 +2816,7 @@ def create_window_content(window):
     combo_row.pack_start(new_btn, False, False, 0)
     profile_section.pack_start(combo_row, True, True, 0)
 
-    sidebar.pack_start(profile_section, True, True, 0)
+    sidebar.pack_start(profile_section, False, False, 0)
     app_state["profile_popover"] = profile_popover
     app_state["profile_list"] = profile_list
     app_state["profile_selector_btn"] = profile_selector_btn
@@ -2815,7 +2827,13 @@ def create_window_content(window):
     stack.set_transition_type(Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
     stack.set_hexpand(True)
     stack.set_vexpand(True)
-    content_grid.attach(stack, 1, 0, 1, 1)
+
+    stack_scroll = Gtk.ScrolledWindow()
+    stack_scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+    stack_scroll.set_vexpand(True)
+    stack_scroll.set_hexpand(True)
+    stack_scroll.add(stack)
+    content_grid.attach(stack_scroll, 1, 0, 1, 1)
     app_state["stack"] = stack
 
     pages = [
@@ -2839,6 +2857,8 @@ def create_window_content(window):
         button.get_style_context().add_class("nav-active")
         stack.set_visible_child_name(page_name)
 
+    nav_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+
     for i, (name, title, __page) in enumerate(pages):
         btn = Gtk.Button(label=title)
         btn.get_style_context().add_class("nav-btn")
@@ -2847,8 +2867,14 @@ def create_window_content(window):
         btn.set_hexpand(True)
         btn.set_halign(Gtk.Align.FILL)
         btn.connect("clicked", on_nav_clicked, name)
-        sidebar.pack_start(btn, True, True, 0)
+        nav_box.pack_start(btn, False, False, 0)
         app_state["nav_buttons"].append(btn)
+
+    nav_scroll = Gtk.ScrolledWindow()
+    nav_scroll.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+    nav_scroll.set_vexpand(True)
+    nav_scroll.add(nav_box)
+    sidebar.pack_start(nav_scroll, True, True, 0)
 
     status_bar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
     status_bar.set_size_request(-1, 32)
