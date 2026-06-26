@@ -44,48 +44,6 @@ yay -Suy rivalcfg-gui
 yay -Rns rivalcfg-gui
 ```
 
-### Debian/Ubuntu (APT)
-
-Add the repository and install via `apt` for automatic updates:
-
-```bash
-echo "deb [trusted=yes] https://MrGodzilla38.github.io/rivalcfg-gui/ ./" | sudo tee /etc/apt/sources.list.d/rivalcfg-gui.list
-sudo apt update
-sudo apt install rivalcfg-gui
-```
-
-**Upgrade:**
-```bash
-sudo apt update && sudo apt upgrade
-```
-
-**Uninstall:**
-```bash
-sudo apt remove rivalcfg-gui
-sudo rm /etc/apt/sources.list.d/rivalcfg-gui.list
-```
-
-### Manual
-
-```bash
-# 1. Install dependencies
-
-# rivalcfg (Arch via AUR)
-yay -S rivalcfg
-
-# rivalcfg (Debian/Ubuntu — via pip)
-pip3 install rivalcfg
-
-# python-gobject & python-cairo (Arch)
-sudo pacman -S python-gobject python-cairo
-
-# python-gobject & python-cairo (Debian/Ubuntu)
-sudo apt install python3-gi python3-cairo
-
-# 2. Run
-python rivalcfg_gui.py
-```
-
 If no mouse is connected or `rivalcfg` is not found, the application will exit immediately with an error message.
 
 ## Requirements
@@ -140,48 +98,6 @@ yay -Suy rivalcfg-gui
 **Kaldırma:**
 ```bash
 yay -Rns rivalcfg-gui
-```
-
-### Debian/Ubuntu (APT)
-
-Depoyu ekleyin ve `apt` ile kurun, otomatik güncellemeler alın:
-
-```bash
-echo "deb [trusted=yes] https://MrGodzilla38.github.io/rivalcfg-gui/ ./" | sudo tee /etc/apt/sources.list.d/rivalcfg-gui.list
-sudo apt update
-sudo apt install rivalcfg-gui
-```
-
-**Güncelleme:**
-```bash
-sudo apt update && sudo apt upgrade
-```
-
-**Kaldırma:**
-```bash
-sudo apt remove rivalcfg-gui
-sudo rm /etc/apt/sources.list.d/rivalcfg-gui.list
-```
-
-### Manuel Kurulum
-
-```bash
-# 1. Bağımlılıkları yükleyin
-
-# rivalcfg (Arch - AUR)
-yay -S rivalcfg
-
-# rivalcfg (Debian/Ubuntu — pip ile)
-pip3 install rivalcfg
-
-# python-gobject & python-cairo (Arch)
-sudo pacman -S python-gobject python-cairo
-
-# python-gobject & python-cairo (Debian/Ubuntu)
-sudo apt install python3-gi python3-cairo
-
-# 2. Çalıştırın
-python rivalcfg_gui.py
 ```
 
 Fare bağlı değilse veya `rivalcfg` bulunamazsa uygulama başlangıçta hata vererek kapanacaktır.
