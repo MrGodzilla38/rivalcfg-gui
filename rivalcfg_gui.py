@@ -718,22 +718,26 @@ class MacroEngine:
 
             def monitor_direct(dev):
                 try:
-                    for event in dev.read_loop():
-                        if self._stop_event.is_set():
-                            break
-                        if event.type == evdev.ecodes.EV_KEY:
-                            e = evdev.categorize(event)
-                            if e.scancode == linux_kc:
-                                if e.keystate == e.key_down:
-                                    if mode == "toggle":
-                                        self.active = not self.active
-                                    elif mode == "hold":
-                                        self.active = True
-                                    GLib.idle_add(self._update_status)
-                                elif e.keystate == e.key_up:
-                                    if mode == "hold":
-                                        self.active = False
+                    import select
+                    poll = select.poll()
+                    poll.register(dev, select.POLLIN)
+                    while not self._stop_event.is_set():
+                        if not poll.poll(100):
+                            continue
+                        for event in dev.read():
+                            if event.type == evdev.ecodes.EV_KEY:
+                                e = evdev.categorize(event)
+                                if e.scancode == linux_kc:
+                                    if e.keystate == e.key_down:
+                                        if mode == "toggle":
+                                            self.active = not self.active
+                                        elif mode == "hold":
+                                            self.active = True
                                         GLib.idle_add(self._update_status)
+                                    elif e.keystate == e.key_up:
+                                        if mode == "hold":
+                                            self.active = False
+                                            GLib.idle_add(self._update_status)
                 except Exception as e:
                     logging.error(f"evdev direct error: {e}")
                 finally:
