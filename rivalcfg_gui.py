@@ -12,7 +12,7 @@ import locale
 import logging
 from logging.handlers import TimedRotatingFileHandler
 
-LOCALE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "locales")
+LOCALE_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "locales")
 
 def setup_gettext(lang=None):
     """Setup gettext translation for the given language."""
@@ -614,7 +614,7 @@ class MacroEngine:
 
     def _ensure_helper_setup(self):
         """Ensure evdev_helper exists and is setuid root. Shows pkexec dialog if needed."""
-        helper_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "evdev_helper")
+        helper_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "evdev_helper")
         if not os.path.exists(helper_path):
             logging.error("evdev_helper binary not found")
             return False
@@ -732,7 +732,7 @@ class MacroEngine:
                     GLib.idle_add(self._set_status_text, _("Helper setup failed"))
                     return
                 helper_path = os.path.join(
-                    os.path.dirname(os.path.abspath(__file__)), "evdev_helper"
+                    os.path.dirname(os.path.realpath(__file__)), "evdev_helper"
                 )
                 proc = None
                 try:
@@ -875,7 +875,7 @@ def create_dpi_page():
     app_state["dpi_labels"] = []
     app_state["dpi_values"] = [800, 1600]
 
-    assets_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets")
+    assets_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "assets")
     trash_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
         os.path.join(assets_dir, "trash.svg"), 16, 16, True
     )
@@ -1273,7 +1273,7 @@ def create_buttons_page():
     card.get_style_context().add_class("card")
     page.pack_start(card, True, True, 0)
 
-    img_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "rival3.png")
+    img_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "assets", "rival3.png")
 
     overlay = Gtk.Overlay()
     overlay.set_hexpand(True)
@@ -2423,7 +2423,7 @@ def rebuild_ui():
         window.remove(child)
 
     window.set_wmclass("rivalcfg-gui", "RivalCFG GUI")
-    icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "logo.png")
+    icon_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "assets", "logo.png")
     if os.path.exists(icon_path):
         icon_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(icon_path, 128, 128, True)
         window.set_icon(icon_pixbuf)
@@ -2491,7 +2491,7 @@ def create_window():
     window.connect("destroy", on_destroy)
     window.set_wmclass("rivalcfg-gui", "RivalCFG GUI")
 
-    icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "logo.png")
+    icon_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "assets", "logo.png")
     if os.path.exists(icon_path):
         icon_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(icon_path, 128, 128, True)
         window.set_icon(icon_pixbuf)
@@ -2553,7 +2553,7 @@ def create_window_content(window):
 
     content_grid.attach(sidebar, 0, 0, 1, 1)
 
-    icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "logo.png")
+    icon_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "assets", "logo.png")
     if os.path.exists(icon_path):
         logo_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(icon_path, 100, 100, True)
         logo_img = Gtk.Image.new_from_pixbuf(logo_pixbuf)
@@ -2697,7 +2697,7 @@ def create_window_content(window):
             name_btn.get_style_context().add_class("profile-menu-select")
             name_btn.connect("clicked", lambda _w, profile_name=p: select_profile(profile_name, close_popover=True))
             edit_btn_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
-                os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "pencil.svg"),
+                os.path.join(os.path.dirname(os.path.realpath(__file__)), "assets", "pencil.svg"),
                 16, 16, True)
             edit_btn = Gtk.Button()
             edit_btn.set_image(Gtk.Image.new_from_pixbuf(edit_btn_pixbuf))
@@ -2705,7 +2705,7 @@ def create_window_content(window):
             edit_btn.get_style_context().add_class("profile-menu-action")
             edit_btn.connect("clicked", lambda _w, profile_name=p: on_rename_profile_named(profile_name))
             delete_btn_pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
-                os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "trash.svg"),
+                os.path.join(os.path.dirname(os.path.realpath(__file__)), "assets", "trash.svg"),
                 16, 16, True)
             delete_btn = Gtk.Button()
             delete_btn.set_image(Gtk.Image.new_from_pixbuf(delete_btn_pixbuf))

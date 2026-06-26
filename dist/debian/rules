@@ -6,9 +6,12 @@ override_dh_auto_build:
 
 override_dh_auto_install:
 	install -d debian/rivalcfg-gui/usr/share/rivalcfg-gui
+	install -d debian/rivalcfg-gui/usr/share/rivalcfg-gui/assets
 	install -Dm755 rivalcfg_gui.py debian/rivalcfg-gui/usr/share/rivalcfg-gui/rivalcfg_gui.py
-	install -Dm644 logo.png debian/rivalcfg-gui/usr/share/rivalcfg-gui/logo.png
-	install -Dm644 rival3.png debian/rivalcfg-gui/usr/share/rivalcfg-gui/rival3.png
+	install -Dm644 assets/logo.png debian/rivalcfg-gui/usr/share/rivalcfg-gui/assets/logo.png
+	install -Dm644 assets/rival3.png debian/rivalcfg-gui/usr/share/rivalcfg-gui/assets/rival3.png
+	install -Dm644 assets/pencil.svg debian/rivalcfg-gui/usr/share/rivalcfg-gui/assets/pencil.svg
+	install -Dm644 assets/trash.svg debian/rivalcfg-gui/usr/share/rivalcfg-gui/assets/trash.svg
 
 	install -d debian/rivalcfg-gui/usr/bin
 	ln -s /usr/share/rivalcfg-gui/rivalcfg_gui.py debian/rivalcfg-gui/usr/bin/rivalcfg-gui
@@ -21,7 +24,7 @@ Type=Application
 Name=RivalCFG GUI
 Comment=SteelSeries mouse configuration tool
 Exec=/usr/share/rivalcfg-gui/rivalcfg_gui.py
-Icon=/usr/share/rivalcfg-gui/logo.png
+Icon=/usr/share/rivalcfg-gui/assets/logo.png
 Terminal=false
 Categories=Utility;Settings;
 StartupWMClass=rivalcfg-gui
