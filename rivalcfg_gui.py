@@ -553,6 +553,48 @@ def _find_keyboard_device():
     return None
 
 
+def _find_mouse_device():
+    """Find a physical mouse input device path.
+    Prefers standalone mice over keyboard sub-interfaces.
+    """
+    from glob import glob
+    import os
+    paths = sorted(glob("/dev/input/by-path/*-event-mouse"))
+    if paths:
+        seen = set()
+        uniq = []
+        for p in paths:
+            rp = os.path.realpath(p)
+            if rp not in seen:
+                seen.add(rp)
+                uniq.append(p)
+        if uniq:
+            def iface_num(pa):
+                base = pa.replace("-event-mouse", "")
+                parts = base.rsplit(":", 1)
+                if len(parts) > 1:
+                    try:
+                        return int(parts[-1].split(".")[-1])
+                    except (ValueError, IndexError):
+                        return 0
+                return 0
+            uniq.sort(key=iface_num)
+            return uniq[0]
+    paths = sorted(glob("/dev/input/event*"))
+    for p in paths:
+        try:
+            dev = evdev.InputDevice(p)
+            caps = dev.capabilities()
+            dev.close()
+            if evdev.ecodes.EV_KEY in caps:
+                keys = set(caps[evdev.ecodes.EV_KEY])
+                if evdev.ecodes.BTN_LEFT in keys and evdev.ecodes.KEY_A not in keys:
+                    return p
+        except Exception:
+            continue
+    return None
+
+
 class MacroEngine:
     """Software auto-clicker engine using evdev event-based key detection."""
 
@@ -663,6 +705,64 @@ class MacroEngine:
             logging.error(f"pkexec setup error: {e}")
         return False
 
+    def _start_helper_monitor(self, dev_path, linux_kc, mode):
+        if not self._ensure_helper_setup():
+            GLib.idle_add(self._set_status_text, _("Helper setup failed"))
+            return
+        helper_path = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), "evdev_helper"
+        )
+        proc = None
+        try:
+            logging.info("Launching helper: %s --device %s --keycode %s",
+                         helper_path, dev_path, linux_kc)
+            proc = subprocess.Popen(
+                [helper_path, "--device", dev_path,
+                 "--keycode", str(linux_kc)],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+            self._helper_proc = proc
+            def read_stderr():
+                for line in proc.stderr:
+                    line = line.decode().strip()
+                    if line:
+                        logging.error(f"helper stderr: {line}")
+            threading.Thread(target=read_stderr, daemon=True).start()
+            for line in proc.stdout:
+                if self._stop_event.is_set():
+                    break
+                try:
+                    data = json.loads(line.decode().strip())
+                    if data.get("key") == linux_kc:
+                        if data.get("state") == "down":
+                            if mode == "toggle":
+                                self.active = not self.active
+                            elif mode == "hold":
+                                self.active = True
+                            GLib.idle_add(self._update_status)
+                        elif data.get("state") == "up":
+                            if mode == "hold":
+                                self.active = False
+                                GLib.idle_add(self._update_status)
+                except (json.JSONDecodeError, KeyError):
+                    continue
+        except Exception as e:
+            logging.error(f"evdev helper error: {e}")
+            GLib.idle_add(self._set_status_text, _("Helper error"))
+        finally:
+            if proc is not None:
+                try:
+                    proc.terminate()
+                except Exception:
+                    pass
+                try:
+                    proc.wait(timeout=2)
+                except Exception:
+                    pass
+            self._helper_proc = None
+            self._close_device()
+
     def start(self, cps, trigger_key, mode, button):
         self.stop()
         self.running = True
@@ -676,31 +776,79 @@ class MacroEngine:
         is_mouse_trigger = trigger_key.startswith("mouse_")
 
         if is_mouse_trigger:
-            mouse_btn_map = {
-                "mouse_left": pynput_mouse.Button.left,
-                "mouse_right": pynput_mouse.Button.right,
-                "mouse_middle": pynput_mouse.Button.middle,
-                "mouse_x1": pynput_mouse.Button.button8,
-                "mouse_x2": pynput_mouse.Button.button9,
+            if not EVDEV_AVAILABLE:
+                logging.error("evdev not available for mouse trigger monitoring")
+                return
+            mouse_kc_map = {
+                "mouse_left": evdev.ecodes.BTN_LEFT,
+                "mouse_right": evdev.ecodes.BTN_RIGHT,
+                "mouse_middle": evdev.ecodes.BTN_MIDDLE,
+                "mouse_x1": evdev.ecodes.BTN_SIDE,
+                "mouse_x2": evdev.ecodes.BTN_EXTRA,
             }
-            mbtn = mouse_btn_map.get(trigger_key)
+            linux_kc = mouse_kc_map.get(trigger_key)
+            if linux_kc is None:
+                logging.error(f"Unknown mouse trigger key: {trigger_key}")
+                return
 
-            def on_click(x, y, btn_pressed, pressed):
-                if btn_pressed == mbtn:
-                    if pressed:
-                        if mode == "toggle":
-                            self.active = not self.active
-                        elif mode == "hold":
-                            self.active = True
-                        GLib.idle_add(self._update_status)
-                    else:
-                        if mode == "hold":
-                            self.active = False
-                            GLib.idle_add(self._update_status)
+            mouse_dev_path = _find_mouse_device()
+            if mouse_dev_path is None:
+                logging.error("No mouse evdev device found")
+                GLib.idle_add(self._set_status_text, _("No mouse device"))
+                return
 
-            self.monitor_thread = pynput_mouse.Listener(on_click=on_click)
-            self.monitor_thread.daemon = True
-            self.monitor_thread.start()
+            # On Wayland the compositor grabs evdev devices; use setuid helper.
+            # On X11 try direct evdev first, fall back to helper on PermissionError.
+            use_helper = bool(os.environ.get('WAYLAND_DISPLAY'))
+            if not use_helper:
+                try:
+                    mouse_dev = evdev.InputDevice(mouse_dev_path)
+                except PermissionError:
+                    use_helper = True
+                except Exception as e:
+                    logging.error(f"Error opening mouse device: {e}")
+                    GLib.idle_add(self._set_status_text, _("Mouse device error"))
+                    return
+
+            if use_helper:
+                self.monitor_thread = threading.Thread(
+                    target=self._start_helper_monitor,
+                    args=(mouse_dev_path, linux_kc, mode), daemon=True
+                )
+                self.monitor_thread.start()
+            else:
+                def monitor_mouse(dev):
+                    try:
+                        import select
+                        poll = select.poll()
+                        poll.register(dev, select.POLLIN)
+                        while not self._stop_event.is_set():
+                            if not poll.poll(100):
+                                continue
+                            for event in dev.read():
+                                if event.type == evdev.ecodes.EV_KEY:
+                                    e = evdev.categorize(event)
+                                    if e.scancode == linux_kc:
+                                        if e.keystate == e.key_down:
+                                            if mode == "toggle":
+                                                self.active = not self.active
+                                            elif mode == "hold":
+                                                self.active = True
+                                            GLib.idle_add(self._update_status)
+                                        elif e.keystate == e.key_up:
+                                            if mode == "hold":
+                                                self.active = False
+                                                GLib.idle_add(self._update_status)
+                    except Exception as e:
+                        logging.error(f"evdev mouse error: {e}")
+                    finally:
+                        try:
+                            dev.close()
+                        except Exception:
+                            pass
+
+                self.monitor_thread = threading.Thread(target=monitor_mouse, args=(mouse_dev,), daemon=True)
+                self.monitor_thread.start()
         else:
             if not EVDEV_AVAILABLE:
                 logging.error("evdev not available for keyboard monitoring")
@@ -748,64 +896,6 @@ class MacroEngine:
                 finally:
                     self._close_device()
 
-            def monitor_helper():
-                if not self._ensure_helper_setup():
-                    GLib.idle_add(self._set_status_text, _("Helper setup failed"))
-                    return
-                helper_path = os.path.join(
-                    os.path.dirname(os.path.realpath(__file__)), "evdev_helper"
-                )
-                proc = None
-                try:
-                    logging.info("Launching helper: %s --device %s --keycode %s",
-                                 helper_path, self._device_path, linux_kc)
-                    proc = subprocess.Popen(
-                        [helper_path, "--device", self._device_path,
-                         "--keycode", str(linux_kc)],
-                        stdout=subprocess.PIPE,
-                        stderr=subprocess.PIPE
-                    )
-                    self._helper_proc = proc
-                    def read_stderr():
-                        for line in proc.stderr:
-                            line = line.decode().strip()
-                            if line:
-                                logging.error(f"helper stderr: {line}")
-                    threading.Thread(target=read_stderr, daemon=True).start()
-                    for line in proc.stdout:
-                        if self._stop_event.is_set():
-                            break
-                        try:
-                            data = json.loads(line.decode().strip())
-                            if data.get("key") == linux_kc:
-                                if data.get("state") == "down":
-                                    if mode == "toggle":
-                                        self.active = not self.active
-                                    elif mode == "hold":
-                                        self.active = True
-                                    GLib.idle_add(self._update_status)
-                                elif data.get("state") == "up":
-                                    if mode == "hold":
-                                        self.active = False
-                                        GLib.idle_add(self._update_status)
-                        except (json.JSONDecodeError, KeyError):
-                            continue
-                except Exception as e:
-                    logging.error(f"evdev helper error: {e}")
-                    GLib.idle_add(self._set_status_text, _("Helper error"))
-                finally:
-                    if proc is not None:
-                        try:
-                            proc.terminate()
-                        except Exception:
-                            pass
-                        try:
-                            proc.wait(timeout=2)
-                        except Exception:
-                            pass
-                    self._helper_proc = None
-                    self._close_device()
-
             dev = self._ensure_device()
             if dev is not None:
                 self.monitor_thread = threading.Thread(
@@ -814,7 +904,8 @@ class MacroEngine:
                 self.monitor_thread.start()
             elif self._device_path is not None:
                 self.monitor_thread = threading.Thread(
-                    target=monitor_helper, daemon=True
+                    target=self._start_helper_monitor,
+                    args=(self._device_path, linux_kc, mode), daemon=True
                 )
                 self.monitor_thread.start()
             else:
