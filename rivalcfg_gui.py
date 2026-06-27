@@ -83,6 +83,7 @@ DEFAULT_SETTINGS = {
     "macro_enabled": False,
     "macro_cps": 10,
     "macro_trigger_key": "f6",
+    "macro_toggle_key": "",
     "macro_mode": "toggle",
     "macro_button": "left",
 }
@@ -170,6 +171,7 @@ def save_profile(name):
         "macro_enabled": s.get("macro_enabled", False),
         "macro_cps": s.get("macro_cps", 10),
         "macro_trigger_key": s.get("macro_trigger_key", "f6"),
+        "macro_toggle_key": s.get("macro_toggle_key", ""),
         "macro_mode": s.get("macro_mode", "toggle"),
         "macro_button": s.get("macro_button", "left"),
     }
@@ -564,6 +566,9 @@ class MacroEngine:
         self._device_path = None
         self._device = None
         self._helper_proc = None
+        self._toggle_listener_thread = None
+        self._toggle_mouse_listener = None
+        self._toggle_stop_event = threading.Event()
 
     def _resolve_keycode(self, trigger_key):
         from Xlib import display as xd, XK
@@ -865,6 +870,103 @@ class MacroEngine:
                 dot.get_style_context().remove_class("status-ok")
                 dot.get_style_context().add_class("status-running")
                 label.set_text(_("Macro stopped"))
+
+    def start_toggle_listener(self, toggle_key, callback):
+        self.stop_toggle_listener()
+        if not toggle_key:
+            return
+        self._toggle_stop_event.clear()
+
+        if toggle_key.startswith("kc:"):
+            parts = toggle_key.split(":", 2)
+            kc_part = parts[1]
+            keycodes = [int(kc) for kc in kc_part.split(",")]
+
+            def listen():
+                if not EVDEV_AVAILABLE:
+                    logging.error("evdev not available for toggle listener")
+                    return
+                dev_path = _find_keyboard_device()
+                if dev_path is not None:
+                    try:
+                        dev = evdev.InputDevice(dev_path)
+                    except PermissionError:
+                        dev = None
+                    except Exception:
+                        dev = None
+                    if dev is not None:
+                        import select
+                        poll = select.poll()
+                        poll.register(dev, select.POLLIN)
+                        if len(keycodes) == 1:
+                            kc = keycodes[0]
+                            while not self._toggle_stop_event.is_set():
+                                if not poll.poll(100):
+                                    continue
+                                for event in dev.read():
+                                    if event.type == evdev.ecodes.EV_KEY:
+                                        e = evdev.categorize(event)
+                                        if e.scancode == kc and e.keystate == e.key_down:
+                                            GLib.idle_add(callback)
+                        else:
+                            pressed_set = set()
+                            triggered = False
+                            target = set(keycodes)
+                            while not self._toggle_stop_event.is_set():
+                                if not poll.poll(50):
+                                    continue
+                                for event in dev.read():
+                                    if event.type == evdev.ecodes.EV_KEY:
+                                        e = evdev.categorize(event)
+                                        if e.scancode in keycodes:
+                                            if e.keystate == e.key_down:
+                                                pressed_set.add(e.scancode)
+                                            elif e.keystate == e.key_up:
+                                                pressed_set.discard(e.scancode)
+                                                triggered = False
+                                if pressed_set == target and not triggered:
+                                    triggered = True
+                                    GLib.idle_add(callback)
+                        try:
+                            dev.close()
+                        except Exception:
+                            pass
+                else:
+                    logging.error("No keyboard device for toggle listener")
+
+            self._toggle_listener_thread = threading.Thread(target=listen, daemon=True)
+            self._toggle_listener_thread.start()
+
+        elif toggle_key.startswith("mouse_"):
+            import pynput.mouse as pynput_mouse_global
+            btn_map = {
+                "mouse_left": pynput_mouse_global.Button.left,
+                "mouse_right": pynput_mouse_global.Button.right,
+                "mouse_middle": pynput_mouse_global.Button.middle,
+                "mouse_x1": pynput_mouse_global.Button.button8,
+                "mouse_x2": pynput_mouse_global.Button.button9,
+            }
+            mbtn = btn_map.get(toggle_key)
+            if mbtn:
+                def on_click(x, y, btn_pressed, pressed):
+                    if btn_pressed == mbtn and pressed:
+                        GLib.idle_add(callback)
+                listener = pynput_mouse_global.Listener(on_click=on_click)
+                listener.daemon = True
+                listener.start()
+                self._toggle_mouse_listener = listener
+
+    def stop_toggle_listener(self):
+        self._toggle_stop_event.set()
+        if self._toggle_listener_thread is not None:
+            self._toggle_listener_thread.join(timeout=2)
+            self._toggle_listener_thread = None
+        if hasattr(self, '_toggle_mouse_listener') and self._toggle_mouse_listener is not None:
+            try:
+                self._toggle_mouse_listener.stop()
+            except Exception:
+                pass
+            self._toggle_mouse_listener = None
 
 
 def create_dpi_page():
@@ -1538,6 +1640,43 @@ def create_buttons_page():
     enable_text.pack_start(enable_desc, False, False, 0)
     enable_row.pack_start(enable_text, True, True, 0)
 
+    current_toggle = app_state["settings"].get("macro_toggle_key", "")
+    if current_toggle.startswith("kc:"):
+        parts = current_toggle.split(":", 2)
+        kc_part = parts[1]
+        name_part = parts[2] if len(parts) > 2 else ""
+        display_names = {
+            "enter": "Enter", "space": "Space", "tab": "Tab",
+            "backspace": "Backspace", "delete": "Delete",
+            "shift": "Shift", "ctrl": "Ctrl", "alt": "Alt", "cmd": "Super",
+            "up": "↑ Up", "down": "↓ Down", "left": "← Left", "right": "→ Right",
+            "home": "Home", "end": "End", "page_up": "Pg Up", "page_down": "Pg Dn",
+            "caps_lock": "Caps Lock", "num_lock": "Num Lock",
+            "insert": "Insert", "menu": "Menu", "pause": "Pause",
+            "print_screen": "PrtSc", "scroll_lock": "Scroll Lock",
+        }
+        if "+" in name_part:
+            names = name_part.split("+")
+            toggle_init = " + ".join(display_names.get(n, n.upper()) for n in names)
+        elif name_part:
+            toggle_init = display_names.get(name_part, name_part.upper())
+        else:
+            toggle_init = f"Key {kc_part}"
+    elif current_toggle.startswith("mouse_"):
+        toggle_init = current_toggle.replace("mouse_", "Mouse ").title()
+    elif current_toggle:
+        toggle_init = current_toggle.upper()
+    else:
+        toggle_init = _("Not set")
+    toggle_display = Gtk.Label(label=_("Shortcut: ") + toggle_init)
+    toggle_display.get_style_context().add_class("setting-label")
+    toggle_display.set_margin_end(4)
+    enable_row.pack_start(toggle_display, False, False, 0)
+
+    toggle_set_btn = Gtk.Button(label=_("Set Key..."))
+    toggle_set_btn.set_size_request(80, -1)
+    enable_row.pack_start(toggle_set_btn, False, False, 0)
+
     macro_switch = Gtk.Switch()
     macro_switch.set_active(app_state["settings"].get("macro_enabled", False))
     enable_row.pack_start(macro_switch, False, False, 0)
@@ -1631,6 +1770,8 @@ def create_buttons_page():
     macro_settings_box.pack_start(status_macro_row, False, False, 0)
 
     app_state["macro_switch"] = macro_switch
+    app_state["macro_toggle_display"] = toggle_display
+    app_state["macro_toggle_set_btn"] = toggle_set_btn
     app_state["macro_cps_spin"] = cps_spin
     app_state["macro_key_display"] = key_display
     app_state["macro_mode_combo"] = mode_combo
@@ -1794,6 +1935,164 @@ def create_buttons_page():
             restart_macro()
 
     key_set_btn.connect("clicked", on_set_key)
+
+    def _toggle_display_text(key_val):
+        display_names = {
+            "enter": "Enter", "space": "Space", "tab": "Tab",
+            "backspace": "Backspace", "delete": "Delete",
+            "shift": "Shift", "ctrl": "Ctrl", "alt": "Alt", "cmd": "Super",
+            "up": "↑ Up", "down": "↓ Down", "left": "← Left", "right": "→ Right",
+            "home": "Home", "end": "End", "page_up": "Pg Up", "page_down": "Pg Dn",
+            "caps_lock": "Caps Lock", "num_lock": "Num Lock",
+            "insert": "Insert", "menu": "Menu", "pause": "Pause",
+            "print_screen": "PrtSc", "scroll_lock": "Scroll Lock",
+        }
+        if key_val.startswith("kc:"):
+            parts = key_val.split(":", 2)
+            kc_part = parts[1]
+            name_part = parts[2] if len(parts) > 2 else ""
+            if "+" in name_part:
+                names = name_part.split("+")
+                display = []
+                for n in names:
+                    display.append(display_names.get(n, n.upper()))
+                return " + ".join(display)
+            elif "+" in kc_part:
+                return _("Chord")
+            if name_part in display_names:
+                return display_names[name_part]
+            elif name_part:
+                return name_part.upper()
+            else:
+                return f"Key {parts[1]}"
+        elif key_val.startswith("mouse_"):
+            btn_name = key_val.replace("mouse_", "").title()
+            return f"Mouse {btn_name}"
+        elif key_val in display_names:
+            return display_names[key_val]
+        else:
+            return key_val.upper()
+
+    def on_set_toggle_key(btn):
+        if not PYNPUT_AVAILABLE:
+            return
+        dialog = Gtk.Dialog(
+            title=_("Set Macro Toggle Key"),
+            parent=app_state["window"],
+            flags=Gtk.DialogFlags.MODAL,
+        )
+        dialog.set_default_size(350, 180)
+        box = dialog.get_content_area()
+        box.set_margin_start(16)
+        box.set_margin_end(16)
+        box.set_margin_top(16)
+        box.set_margin_bottom(16)
+        lbl = Gtk.Label(
+            label=_("Press key combination... (ENTER to confirm, ESC to cancel)")
+        )
+        lbl.set_halign(Gtk.Align.CENTER)
+        box.pack_start(lbl, True, True, 0)
+
+        combo_lbl = Gtk.Label(label=_("(press keys)"))
+        combo_lbl.get_style_context().add_class("setting-label")
+        combo_lbl.set_halign(Gtk.Align.CENTER)
+        box.pack_start(combo_lbl, False, False, 0)
+        dialog.show_all()
+
+        captured = [None]
+        pressed = {}
+        display_names = {
+            "enter": "Enter", "space": "Space", "tab": "Tab",
+            "backspace": "Backspace", "delete": "Delete",
+            "shift": "Shift", "ctrl": "Ctrl", "alt": "Alt", "cmd": "Super",
+            "up": "↑ Up", "down": "↓ Down", "left": "← Left", "right": "→ Right",
+            "home": "Home", "end": "End", "page_up": "Pg Up", "page_down": "Pg Dn",
+            "caps_lock": "Caps Lock", "num_lock": "Num Lock",
+            "insert": "Insert", "menu": "Menu", "pause": "Pause",
+            "print_screen": "PrtSc", "scroll_lock": "Scroll Lock",
+        }
+        key_normalize = {
+            "return": "enter", "kp_enter": "enter",
+            "shift_l": "shift", "shift_r": "shift",
+            "control_l": "ctrl", "control_r": "ctrl",
+            "alt_l": "alt", "alt_r": "alt",
+            "super_l": "cmd", "super_r": "cmd",
+        }
+
+        def update_combo_label():
+            if pressed:
+                names = [display_names.get(n, n.upper())
+                         for kc, n in sorted(pressed.items())]
+                combo_lbl.set_text(" + ".join(names))
+            else:
+                combo_lbl.set_text(_("(press keys)"))
+
+        def on_key_press(widget, event):
+            keyval = event.keyval
+            keyname = Gdk.keyval_name(keyval)
+            hw_kc = event.hardware_keycode
+            linux_kc = _x11_to_linux_keycode(hw_kc)
+            kn = keyname.lower() if keyname else ""
+            if kn == 'escape':
+                captured[0] = '__cancel__'
+                dialog.response(1)
+                return True
+            if kn == 'return' or kn == 'kp_enter':
+                if not pressed:
+                    return True
+                kcs = ",".join(str(k) for k in sorted(pressed.keys()))
+                names = "+".join(pressed[k] for k in sorted(pressed.keys()))
+                captured[0] = f"kc:{kcs}:{names}"
+                dialog.response(1)
+                return True
+            if linux_kc is not None and linux_kc not in pressed:
+                normalized = key_normalize.get(kn, kn)
+                pressed[linux_kc] = normalized
+                update_combo_label()
+            return True
+
+        def on_key_release(widget, event):
+            return True
+
+        dialog.connect("key-press-event", on_key_press)
+        dialog.connect("key-release-event", on_key_release)
+
+        def on_mouse_btn(widget, event):
+            btn = event.button
+            btn_map = {1: "mouse_left", 2: "mouse_middle", 3: "mouse_right",
+                       8: "mouse_x1", 9: "mouse_x2"}
+            if btn in btn_map:
+                captured[0] = btn_map[btn]
+                dialog.response(1)
+            return True
+
+        dialog.connect("button-press-event", on_mouse_btn)
+
+        dialog.run()
+        dialog.destroy()
+
+        if captured[0] and captured[0] != '__cancel__':
+            key_val = captured[0]
+            app_state["settings"]["macro_toggle_key"] = key_val
+            toggle_display.set_text(_("Shortcut: ") + _toggle_display_text(key_val))
+            save_settings()
+
+            engine = app_state.get("macro_engine")
+            if engine:
+                engine.stop_toggle_listener()
+                engine.start_toggle_listener(key_val, on_toggle_macro)
+
+    toggle_set_btn.connect("clicked", on_set_toggle_key)
+
+    def on_toggle_macro():
+        macro_switch.set_active(not macro_switch.get_active())
+    app_state["on_toggle_macro"] = on_toggle_macro
+
+    current_toggle = app_state["settings"].get("macro_toggle_key", "")
+    if current_toggle:
+        engine = app_state.get("macro_engine")
+        if engine:
+            engine.start_toggle_listener(current_toggle, on_toggle_macro)
 
     btn_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
     btn_row.set_halign(Gtk.Align.START)
@@ -1976,6 +2275,7 @@ def apply_profile_to_ui(profile):
         app_state["settings"]["macro_enabled"] = profile["macro_enabled"]
         app_state["settings"]["macro_cps"] = profile.get("macro_cps", 10)
         app_state["settings"]["macro_trigger_key"] = profile.get("macro_trigger_key", "f6")
+        app_state["settings"]["macro_toggle_key"] = profile.get("macro_toggle_key", "")
         app_state["settings"]["macro_mode"] = profile.get("macro_mode", "toggle")
         app_state["settings"]["macro_button"] = profile.get("macro_button", "left")
         sw = app_state.get("macro_switch")
@@ -1996,6 +2296,43 @@ def apply_profile_to_ui(profile):
                 kd.set_text(key_name.upper() if key_name else f"Key {parts[1]}")
             else:
                 kd.set_text(val.upper())
+        td = app_state.get("macro_toggle_display")
+        if td:
+            toggle_val = profile.get("macro_toggle_key", "")
+            display_names = {
+                "enter": "Enter", "space": "Space", "tab": "Tab",
+                "backspace": "Backspace", "delete": "Delete",
+                "shift": "Shift", "ctrl": "Ctrl", "alt": "Alt", "cmd": "Super",
+                "up": "↑ Up", "down": "↓ Down", "left": "← Left", "right": "→ Right",
+                "home": "Home", "end": "End", "page_up": "Pg Up", "page_down": "Pg Dn",
+                "caps_lock": "Caps Lock", "num_lock": "Num Lock",
+                "insert": "Insert", "menu": "Menu", "pause": "Pause",
+                "print_screen": "PrtSc", "scroll_lock": "Scroll Lock",
+            }
+            if toggle_val.startswith("kc:"):
+                parts = toggle_val.split(":", 2)
+                name_part = parts[2] if len(parts) > 2 else ""
+                if "+" in name_part:
+                    names = name_part.split("+")
+                    display = " + ".join(display_names.get(n, n.upper()) for n in names)
+                elif name_part:
+                    display = display_names.get(name_part, name_part.upper())
+                else:
+                    display = f"Key {parts[1]}"
+                td.set_text(_("Shortcut: ") + display)
+            elif toggle_val.startswith("mouse_"):
+                td.set_text(_("Shortcut: Mouse ") + toggle_val.replace("mouse_", "").title())
+            elif toggle_val:
+                td.set_text(_("Shortcut: ") + toggle_val.upper())
+            else:
+                td.set_text(_("Shortcut: Not set"))
+        engine = app_state.get("macro_engine")
+        toggle_cb = app_state.get("on_toggle_macro")
+        if engine and toggle_cb:
+            engine.stop_toggle_listener()
+            toggle_key = app_state["settings"].get("macro_toggle_key", "")
+            if toggle_key:
+                engine.start_toggle_listener(toggle_key, toggle_cb)
         mc = app_state.get("macro_mode_combo")
         if mc:
             mc.set_active(0 if profile.get("macro_mode", "toggle") == "toggle" else 1)
@@ -2445,6 +2782,9 @@ def rebuild_ui():
         window.set_icon(icon_pixbuf)
         Gtk.Window.set_default_icon_from_file(icon_path)
 
+    engine = app_state.get("macro_engine")
+    if engine:
+        engine.stop_toggle_listener()
     app_state["nav_buttons"] = []
     app_state["is_rebuild"] = True
     create_window_content(window)
@@ -2502,6 +2842,7 @@ def create_window():
     def on_destroy(*a):
         if app_state.get("macro_engine"):
             app_state["macro_engine"].stop()
+            app_state["macro_engine"].stop_toggle_listener()
         Gtk.main_quit()
 
     window.connect("destroy", on_destroy)
