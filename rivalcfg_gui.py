@@ -137,8 +137,9 @@ def save_settings():
     """Save current settings to JSON file."""
     try:
         os.makedirs(SETTINGS_DIR, exist_ok=True)
+        to_save = {k: v for k, v in app_state["settings"].items() if k != "macro_enabled"}
         with open(SETTINGS_FILE, "w") as f:
-            json.dump(app_state["settings"], f, indent=4)
+            json.dump(to_save, f, indent=4)
     except Exception as e:
         logging.error("Failed to save settings: %s", e)
         print(_("Failed to save settings: {}").format(e))
@@ -168,7 +169,6 @@ def save_profile(name):
         "z4_hex": app_state.get("z4_hex", "ff6600"),
         "selected_effect": app_state.get("selected_effect", "steady"),
         "button_mapping": app_state.get("button_mapping", {}),
-        "macro_enabled": s.get("macro_enabled", False),
         "macro_cps": s.get("macro_cps", 10),
         "macro_trigger_key": s.get("macro_trigger_key", "f6"),
         "macro_toggle_key": s.get("macro_toggle_key", ""),
@@ -2363,18 +2363,11 @@ def apply_profile_to_ui(profile):
             app_state["redraw_buttons"]()
 
     if "macro_enabled" in profile:
-        app_state["settings"]["macro_enabled"] = profile["macro_enabled"]
         app_state["settings"]["macro_cps"] = profile.get("macro_cps", 10)
         app_state["settings"]["macro_trigger_key"] = profile.get("macro_trigger_key", "f6")
         app_state["settings"]["macro_toggle_key"] = profile.get("macro_toggle_key", "")
         app_state["settings"]["macro_mode"] = profile.get("macro_mode", "toggle")
         app_state["settings"]["macro_button"] = profile.get("macro_button", "left")
-        sw = app_state.get("macro_switch")
-        if sw:
-            sw.set_active(profile["macro_enabled"])
-        sb = app_state.get("macro_settings_box")
-        if sb:
-            sb.set_visible(profile["macro_enabled"])
         sp = app_state.get("macro_cps_spin")
         if sp:
             sp.set_value(profile.get("macro_cps", 10))
@@ -2434,10 +2427,6 @@ def apply_profile_to_ui(profile):
             bc.set_active(bvals.index(bv) if bv in bvals else 0)
 
     app_state["_loading_profile"] = False
-    if "macro_enabled" in profile and profile["macro_enabled"]:
-        rm = app_state.get("restart_macro")
-        if rm:
-            rm()
 
 
 def apply_all_to_device():
@@ -2970,6 +2959,15 @@ def create_window():
     profile_data = load_profile_data(active)
     if profile_data:
         apply_profile_to_ui(profile_data)
+
+    # Always start with auto-clicker disabled
+    app_state["settings"]["macro_enabled"] = False
+    sw = app_state.get("macro_switch")
+    if sw:
+        sw.set_active(False)
+    engine = app_state.get("macro_engine")
+    if engine:
+        engine.stop()
 
     if app_state["settings"]["startup_minimize"]:
         window.iconify()
