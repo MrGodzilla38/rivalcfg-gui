@@ -423,6 +423,126 @@ msgstr "启动中..."
 msgid "Don't save (--no-save)"
 msgstr "不要保存 (--no-save)"
 
+#: rivalcfg_gui.py:684
+msgid "Setting up helper (enter password)..."
+msgstr "正在设置辅助程序 (输入密码)..."
+
+#: rivalcfg_gui.py:710
+msgid "Helper setup failed"
+msgstr "辅助程序设置失败"
+
+#: rivalcfg_gui.py:752
+msgid "Helper error"
+msgstr "辅助程序错误"
+
+#: rivalcfg_gui.py:797
+msgid "No mouse device"
+msgstr "没有鼠标设备"
+
+#: rivalcfg_gui.py:810
+msgid "Mouse device error"
+msgstr "鼠标设备错误"
+
+#: rivalcfg_gui.py:913
+msgid "No keyboard device"
+msgstr "没有键盘设备"
+
+#: rivalcfg_gui.py:959
+msgid "Macro running"
+msgstr "宏运行中"
+
+#: rivalcfg_gui.py:963 rivalcfg_gui.py:1857
+msgid "Macro stopped"
+msgstr "宏已停止"
+
+#: rivalcfg_gui.py:1714
+msgid "MACRO / AUTO CLICKER"
+msgstr "宏 / 自动点击"
+
+#: rivalcfg_gui.py:1724
+msgid "Macro / Auto Clicker"
+msgstr "宏 / 自动点击"
+
+#: rivalcfg_gui.py:1727
+msgid "Enable auto-click macro"
+msgstr "启用自动点击宏"
+
+#: rivalcfg_gui.py:1761
+msgid "Not set"
+msgstr "未设置"
+
+#: rivalcfg_gui.py:1762 rivalcfg_gui.py:2406 rivalcfg_gui.py:2410
+msgid "Shortcut: "
+msgstr "快捷键: "
+
+#: rivalcfg_gui.py:1767 rivalcfg_gui.py:1816
+msgid "Set Key..."
+msgstr "设置按键..."
+
+#: rivalcfg_gui.py:1780
+msgid "evdev module not installed.\nInstall: python-evdev"
+msgstr "evdev 模块未安装。\n安装: python-evdev"
+
+#: rivalcfg_gui.py:1788
+msgid "Clicks per second:"
+msgstr "每秒点击次数:"
+
+#: rivalcfg_gui.py:1809
+msgid "Trigger key:"
+msgstr "触发键:"
+
+#: rivalcfg_gui.py:1825
+msgid "Mode:"
+msgstr "模式:"
+
+#: rivalcfg_gui.py:1829
+msgid "Toggle (press once to start/stop)"
+msgstr "切换 (按一次开始/停止)"
+
+#: rivalcfg_gui.py:1830
+msgid "Hold (click while held)"
+msgstr "按住 (按住时点击)"
+
+#: rivalcfg_gui.py:1839
+msgid "Mouse button:"
+msgstr "鼠标按键:"
+
+#: rivalcfg_gui.py:1845
+msgid "Middle Click"
+msgstr "中键点击"
+
+#: rivalcfg_gui.py:1882
+msgid "pynput not installed"
+msgstr "pynput 未安装"
+
+#: rivalcfg_gui.py:1938
+msgid "Set Trigger Key"
+msgstr "设置触发键"
+
+#: rivalcfg_gui.py:1948
+msgid "Press any key or click a mouse button...\nESC to cancel"
+msgstr "按下任意键或点击鼠标按钮...\nESC 取消"
+
+#: rivalcfg_gui.py:2052
+msgid "Chord"
+msgstr "组合键"
+
+#: rivalcfg_gui.py:2071
+msgid "Set Macro Toggle Key"
+msgstr "设置宏切换键"
+
+#: rivalcfg_gui.py:2082
+msgid "Press key combination... (ENTER to confirm, ESC to cancel)"
+msgstr "按下组合键... (ENTER 确认, ESC 取消)"
+
+#: rivalcfg_gui.py:2087 rivalcfg_gui.py:2119
+msgid "(press keys)"
+msgstr "(按下按键)"
+
+#: rivalcfg_gui.py:2412
+msgid "Shortcut: Not set"
+msgstr "快捷键: 未设置"
+
 #~ msgid "BUTTON ASSIGNMENTS"
 #~ msgstr "BUTTON ASSIGNMENTS"
 

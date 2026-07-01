@@ -425,6 +425,126 @@ msgstr "Iniciando..."
 msgid "Don't save (--no-save)"
 msgstr "No guardar (--no-save)"
 
+#: rivalcfg_gui.py:684
+msgid "Setting up helper (enter password)..."
+msgstr "Configurando helper (ingrese contraseña)..."
+
+#: rivalcfg_gui.py:710
+msgid "Helper setup failed"
+msgstr "Error al configurar helper"
+
+#: rivalcfg_gui.py:752
+msgid "Helper error"
+msgstr "Error de helper"
+
+#: rivalcfg_gui.py:797
+msgid "No mouse device"
+msgstr "No hay dispositivo de ratón"
+
+#: rivalcfg_gui.py:810
+msgid "Mouse device error"
+msgstr "Error de dispositivo de ratón"
+
+#: rivalcfg_gui.py:913
+msgid "No keyboard device"
+msgstr "No hay dispositivo de teclado"
+
+#: rivalcfg_gui.py:959
+msgid "Macro running"
+msgstr "Macro ejecutándose"
+
+#: rivalcfg_gui.py:963 rivalcfg_gui.py:1857
+msgid "Macro stopped"
+msgstr "Macro detenido"
+
+#: rivalcfg_gui.py:1714
+msgid "MACRO / AUTO CLICKER"
+msgstr "MACRO / AUTO CLIC"
+
+#: rivalcfg_gui.py:1724
+msgid "Macro / Auto Clicker"
+msgstr "Macro / Auto Clic"
+
+#: rivalcfg_gui.py:1727
+msgid "Enable auto-click macro"
+msgstr "Habilitar macro de auto clic"
+
+#: rivalcfg_gui.py:1761
+msgid "Not set"
+msgstr "No establecido"
+
+#: rivalcfg_gui.py:1762 rivalcfg_gui.py:2406 rivalcfg_gui.py:2410
+msgid "Shortcut: "
+msgstr "Atajo: "
+
+#: rivalcfg_gui.py:1767 rivalcfg_gui.py:1816
+msgid "Set Key..."
+msgstr "Establecer tecla..."
+
+#: rivalcfg_gui.py:1780
+msgid "evdev module not installed.\nInstall: python-evdev"
+msgstr "Módulo evdev no instalado.\nInstalar: python-evdev"
+
+#: rivalcfg_gui.py:1788
+msgid "Clicks per second:"
+msgstr "Clics por segundo:"
+
+#: rivalcfg_gui.py:1809
+msgid "Trigger key:"
+msgstr "Tecla de activación:"
+
+#: rivalcfg_gui.py:1825
+msgid "Mode:"
+msgstr "Modo:"
+
+#: rivalcfg_gui.py:1829
+msgid "Toggle (press once to start/stop)"
+msgstr "Alternar (presione una vez para iniciar/detener)"
+
+#: rivalcfg_gui.py:1830
+msgid "Hold (click while held)"
+msgstr "Mantener (clic mientras se mantiene)"
+
+#: rivalcfg_gui.py:1839
+msgid "Mouse button:"
+msgstr "Botón del ratón:"
+
+#: rivalcfg_gui.py:1845
+msgid "Middle Click"
+msgstr "Clic Central"
+
+#: rivalcfg_gui.py:1882
+msgid "pynput not installed"
+msgstr "pynput no instalado"
+
+#: rivalcfg_gui.py:1938
+msgid "Set Trigger Key"
+msgstr "Establecer tecla de activación"
+
+#: rivalcfg_gui.py:1948
+msgid "Press any key or click a mouse button...\nESC to cancel"
+msgstr "Presione cualquier tecla o haga clic en un botón del ratón...\nESC para cancelar"
+
+#: rivalcfg_gui.py:2052
+msgid "Chord"
+msgstr "Combinación"
+
+#: rivalcfg_gui.py:2071
+msgid "Set Macro Toggle Key"
+msgstr "Establecer tecla de alternancia de macro"
+
+#: rivalcfg_gui.py:2082
+msgid "Press key combination... (ENTER to confirm, ESC to cancel)"
+msgstr "Presione combinación de teclas... (ENTER para confirmar, ESC para cancelar)"
+
+#: rivalcfg_gui.py:2087 rivalcfg_gui.py:2119
+msgid "(press keys)"
+msgstr "(presione teclas)"
+
+#: rivalcfg_gui.py:2412
+msgid "Shortcut: Not set"
+msgstr "Atajo: No establecido"
+
 #~ msgid "BUTTON ASSIGNMENTS"
 #~ msgstr "ASIGNACIÓN DE BOTONES"
 

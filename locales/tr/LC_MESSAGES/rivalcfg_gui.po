@@ -423,6 +423,126 @@ msgstr "Başlatılıyor..."
 msgid "Don't save (--no-save)"
 msgstr "Kaydetme (--no-save)"
 
+#: rivalcfg_gui.py:684
+msgid "Setting up helper (enter password)..."
+msgstr "Yardımcı ayarlanıyor (şifre girin)..."
+
+#: rivalcfg_gui.py:710
+msgid "Helper setup failed"
+msgstr "Yardımcı ayarlanamadı"
+
+#: rivalcfg_gui.py:752
+msgid "Helper error"
+msgstr "Yardımcı hatası"
+
+#: rivalcfg_gui.py:797
+msgid "No mouse device"
+msgstr "Fare cihazı yok"
+
+#: rivalcfg_gui.py:810
+msgid "Mouse device error"
+msgstr "Fare cihazı hatası"
+
+#: rivalcfg_gui.py:913
+msgid "No keyboard device"
+msgstr "Klavye cihazı yok"
+
+#: rivalcfg_gui.py:959
+msgid "Macro running"
+msgstr "Makro çalışıyor"
+
+#: rivalcfg_gui.py:963 rivalcfg_gui.py:1857
+msgid "Macro stopped"
+msgstr "Makro durduruldu"
+
+#: rivalcfg_gui.py:1714
+msgid "MACRO / AUTO CLICKER"
+msgstr "MAKRO / OTOMATİK TIKLAMA"
+
+#: rivalcfg_gui.py:1724
+msgid "Macro / Auto Clicker"
+msgstr "Makro / Otomatik Tıklama"
+
+#: rivalcfg_gui.py:1727
+msgid "Enable auto-click macro"
+msgstr "Otomatik tıklama makrosunu etkinleştir"
+
+#: rivalcfg_gui.py:1761
+msgid "Not set"
+msgstr "Ayarlanmamış"
+
+#: rivalcfg_gui.py:1762 rivalcfg_gui.py:2406 rivalcfg_gui.py:2410
+msgid "Shortcut: "
+msgstr "Kısayol: "
+
+#: rivalcfg_gui.py:1767 rivalcfg_gui.py:1816
+msgid "Set Key..."
+msgstr "Tuş Ayarla..."
+
+#: rivalcfg_gui.py:1780
+msgid "evdev module not installed.\nInstall: python-evdev"
+msgstr "evdev modülü kurulu değil.\nKurulum: python-evdev"
+
+#: rivalcfg_gui.py:1788
+msgid "Clicks per second:"
+msgstr "Saniyedeki tıklama:"
+
+#: rivalcfg_gui.py:1809
+msgid "Trigger key:"
+msgstr "Tetik tuşu:"
+
+#: rivalcfg_gui.py:1825
+msgid "Mode:"
+msgstr "Mod:"
+
+#: rivalcfg_gui.py:1829
+msgid "Toggle (press once to start/stop)"
+msgstr "Geçmeli (başlatmak/durdurmak için bir kez bas)"
+
+#: rivalcfg_gui.py:1830
+msgid "Hold (click while held)"
+msgstr "Basılı tut (basılıyken tıkla)"
+
+#: rivalcfg_gui.py:1839
+msgid "Mouse button:"
+msgstr "Fare düğmesi:"
+
+#: rivalcfg_gui.py:1845
+msgid "Middle Click"
+msgstr "Orta Tıklama"
+
+#: rivalcfg_gui.py:1882
+msgid "pynput not installed"
+msgstr "pynput kurulu değil"
+
+#: rivalcfg_gui.py:1938
+msgid "Set Trigger Key"
+msgstr "Tetik Tuşunu Ayarla"
+
+#: rivalcfg_gui.py:1948
+msgid "Press any key or click a mouse button...\nESC to cancel"
+msgstr "Bir tuşa basın veya fare düğmesine tıklayın...\nİptal için ESC"
+
+#: rivalcfg_gui.py:2052
+msgid "Chord"
+msgstr "Kombinasyon"
+
+#: rivalcfg_gui.py:2071
+msgid "Set Macro Toggle Key"
+msgstr "Makro Geçiş Tuşunu Ayarla"
+
+#: rivalcfg_gui.py:2082
+msgid "Press key combination... (ENTER to confirm, ESC to cancel)"
+msgstr "Tuş kombinasyonuna basın... (Onaylamak için ENTER, iptal için ESC)"
+
+#: rivalcfg_gui.py:2087 rivalcfg_gui.py:2119
+msgid "(press keys)"
+msgstr "(tuşlara basın)"
+
+#: rivalcfg_gui.py:2412
+msgid "Shortcut: Not set"
+msgstr "Kısayol: Ayarlanmamış"
+
 #~ msgid "BUTTON ASSIGNMENTS"
 #~ msgstr "DÜĞME ATAMALARI"
 
