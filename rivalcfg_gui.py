@@ -2871,6 +2871,10 @@ def rebuild_ui():
 
     window.show_all()
 
+    macro_box = app_state.get("macro_settings_box")
+    if macro_box:
+        macro_box.set_visible(app_state["settings"].get("macro_enabled", False))
+
     active = app_state["settings"].get("active_profile", "Default")
     profile_data = load_profile_data(active)
     if profile_data:
@@ -2949,6 +2953,10 @@ def create_window():
     create_window_content(window)
 
     window.show_all()
+
+    macro_box = app_state.get("macro_settings_box")
+    if macro_box:
+        macro_box.set_visible(app_state["settings"].get("macro_enabled", False))
 
     active = app_state["settings"].get("active_profile", "Default")
     profiles = list_profiles()
