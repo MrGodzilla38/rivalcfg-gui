@@ -2300,10 +2300,10 @@ def create_about_page():
 
     text = (
         _("Linux GUI configuration tool for SteelSeries mice.") + "\n" +
-        _("Built on top of the rivalcfg library.") + "\n\n" +
-        _("Requirements:") + "\n" +
-        _("  pip install rivalcfg") + "\n" +
-        _("  pacman -S python-gobject python-cairo")
+        _("Built on top of the rivalcfg library.") #+ "\n\n" +
+#        _("Requirements:") + "\n" +
+#        _("  pip install rivalcfg") + "\n" +
+#        _("  pacman -S python-gobject python-cairo")
     )
     label = Gtk.Label(label=text)
     label.set_line_wrap(True)
