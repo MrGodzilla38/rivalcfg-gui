@@ -77,7 +77,7 @@ LOGS_DIR = os.path.join(SETTINGS_DIR, "logs")
 DEFAULT_SETTINGS = {
     "startup_minimize": False,
     "auto_apply": False,
-    "accent_color": "#e84545",
+    "accent_color": "#ff7800",
     "language": "en",
     "active_profile": "Default",
     "macro_enabled": False,
@@ -283,7 +283,7 @@ window {
 }
 
 .profile-menu-delete:hover {
-    color: #e84545;
+    color: #ff7800;
 }
 
 .nav-btn {
@@ -297,7 +297,7 @@ window {
 
 .nav-active {
     background: #1a0a14;
-    color: #e84545;
+    color: #ff7800;
 }
 
 .page-title {
@@ -315,7 +315,7 @@ window {
 
 .card-title {
     font-size: 11px;
-    color: #e84545;
+    color: #ff7800;
     font-weight: bold;
 }
 
@@ -326,7 +326,7 @@ window {
 }
 
 .apply-btn {
-    background: #e84545;
+    background: #ff7800;
     color: white;
     border: none;
     border-radius: 6px;
@@ -361,7 +361,7 @@ window {
 }
 
 .status-error {
-    color: #e84545;
+    color: #ff7800;
 }
 
 scale trough {
@@ -370,7 +370,7 @@ scale trough {
 }
 
 scale trough highlight {
-    background: #e84545;
+    background: #ff7800;
 }
 
 scale slider {
@@ -381,15 +381,15 @@ scale slider {
 
 .danger-btn {
     background: #2a0a0a;
-    border: 1px solid #e84545;
-    color: #e84545;
+    border: 1px solid #ff7800;
+    color: #ff7800;
     border-radius: 6px;
     padding: 8px 20px;
     font-weight: bold;
 }
 
 .danger-btn:hover {
-    background: #e84545;
+    background: #ff7800;
     color: white;
 }
 
