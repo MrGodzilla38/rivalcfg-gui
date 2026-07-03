@@ -56,6 +56,9 @@ If no mouse is connected or `rivalcfg` is not found, the application will exit i
 | python-cairo (`cairo`) | Python Cairo bindings |
 | `rivalcfg` | SteelSeries CLI tool |
 
+## LICENSE
+MIT
+
 # 🇹🇷 Türkçe
 
 SteelSeries fareler için Linux masaüstü yapılandırma aracı (`rivalcfg` CLI üzerinden).
