@@ -3,15 +3,24 @@
 	dh $@
 
 override_dh_auto_build:
+	gcc -O2 -o evdev_helper evdev_helper.c
 
 override_dh_auto_install:
 	install -d debian/rivalcfg-gui/usr/share/rivalcfg-gui
 	install -d debian/rivalcfg-gui/usr/share/rivalcfg-gui/assets
 	install -Dm755 rivalcfg_gui.py debian/rivalcfg-gui/usr/share/rivalcfg-gui/rivalcfg_gui.py
+	install -Dm755 evdev_helper debian/rivalcfg-gui/usr/share/rivalcfg-gui/evdev_helper
 	install -Dm644 assets/logo.png debian/rivalcfg-gui/usr/share/rivalcfg-gui/assets/logo.png
 	install -Dm644 assets/rival3.png debian/rivalcfg-gui/usr/share/rivalcfg-gui/assets/rival3.png
 	install -Dm644 assets/pencil.svg debian/rivalcfg-gui/usr/share/rivalcfg-gui/assets/pencil.svg
 	install -Dm644 assets/trash.svg debian/rivalcfg-gui/usr/share/rivalcfg-gui/assets/trash.svg
+
+	# Install locale files
+	for lang_dir in locales/*/LC_MESSAGES; do \
+		lang_code=$$(echo "$$lang_dir" | cut -d/ -f2); \
+		install -d debian/rivalcfg-gui/usr/share/rivalcfg-gui/locales/$$lang_code/LC_MESSAGES; \
+		install -Dm644 "$$lang_dir/rivalcfg_gui.mo" "debian/rivalcfg-gui/usr/share/rivalcfg-gui/locales/$$lang_code/LC_MESSAGES/rivalcfg_gui.mo"; \
+	done
 
 	install -d debian/rivalcfg-gui/usr/bin
 	ln -s /usr/share/rivalcfg-gui/rivalcfg_gui.py debian/rivalcfg-gui/usr/bin/rivalcfg-gui

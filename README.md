@@ -57,7 +57,7 @@ If no mouse is connected or `rivalcfg` is not found, the application will exit i
 | `rivalcfg` | SteelSeries CLI tool |
 
 ## LICENSE
-MIT
+GPL-3.0-or-later
 
 # 🇹🇷 Türkçe
 
