@@ -1,4 +1,5 @@
 # RivalCFG GUI
+<img width="1291" height="750" alt="image" src="https://github.com/user-attachments/assets/98d0daf0-7061-481e-a4a7-ab4bcfa5f7a6" />
 
 # 🇺🇸 English
 
