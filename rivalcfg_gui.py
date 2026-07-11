@@ -323,6 +323,18 @@ window {
     font-size: 26px;
     color: #ffffff;
     font-family: monospace;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+}
+
+spinbutton.value-display button {
+    -gtk-icon-source: none;
+    min-width: 0;
+    min-height: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
 }
 
 .apply-btn {
@@ -1135,12 +1147,18 @@ def create_dpi_page():
             lbl.set_halign(Gtk.Align.START)
             row.pack_start(lbl, False, False, 0)
 
-            val_label = Gtk.Label(label=str(val))
-            val_label.get_style_context().add_class("value-display")
-            val_label.set_size_request(80, -1)
-            val_label.set_halign(Gtk.Align.START)
-            row.pack_start(val_label, False, False, 0)
-            app_state["dpi_labels"].append(val_label)
+            spin_btn = Gtk.SpinButton()
+            spin_btn.set_range(200, 8500)
+            spin_btn.set_increments(100, 100)
+            spin_btn.set_digits(0)
+            spin_btn.set_numeric(True)
+            spin_btn.set_max_length(4)
+            spin_btn.set_value(val)
+            spin_btn.set_size_request(80, -1)
+            spin_btn.set_halign(Gtk.Align.START)
+            spin_btn.get_style_context().add_class("value-display")
+            row.pack_start(spin_btn, False, False, 0)
+            app_state["dpi_labels"].append(spin_btn)
 
             scale = Gtk.Scale(orientation=Gtk.Orientation.HORIZONTAL)
             scale.set_range(200, 8500)
@@ -1150,9 +1168,28 @@ def create_dpi_page():
             scale.set_value(val)
             scale.set_hexpand(True)
 
-            def on_dpi_changed(sc, idx=i, vl=val_label):
+            _updating = [False]
+
+            def on_dpi_changed(sc, idx=i, sb=spin_btn, guard=_updating):
+                if guard[0]:
+                    return
+                guard[0] = True
                 v = int(sc.get_value())
-                vl.set_text(str(v))
+                sb.set_value(v)
+                guard[0] = False
+                app_state["dpi_values"][idx] = v
+                if not app_state.get("_loading_profile") and app_state["settings"].get("auto_apply"):
+                    vals = app_state["dpi_values"]
+                    arg = ",".join(str(val) for val in vals)
+                    run_rivalcfg(["--sensitivity", arg])
+
+            def on_spin_changed(sb, idx=i, sc=scale, guard=_updating):
+                if guard[0]:
+                    return
+                guard[0] = True
+                v = int(sb.get_value())
+                sc.set_value(v)
+                guard[0] = False
                 app_state["dpi_values"][idx] = v
                 if not app_state.get("_loading_profile") and app_state["settings"].get("auto_apply"):
                     vals = app_state["dpi_values"]
@@ -1160,6 +1197,7 @@ def create_dpi_page():
                     run_rivalcfg(["--sensitivity", arg])
 
             scale.connect("value-changed", on_dpi_changed)
+            spin_btn.connect("value-changed", on_spin_changed)
             row.pack_start(scale, True, True, 0)
             app_state["dpi_scales"].append(scale)
 
