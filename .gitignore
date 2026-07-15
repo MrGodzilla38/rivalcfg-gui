@@ -11,3 +11,9 @@ rivalcfg-gui.desktop
 
 # Compiled C helper binary
 evdev_helper
+
+# Flatpak build directory
+build-dir/
+
+# Standalone rivalcfg downloaded during Debian build
+rivalcfg-cli_v*/
