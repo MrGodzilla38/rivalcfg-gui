@@ -235,6 +235,48 @@ window {
     background: #0a0a0f;
 }
 
+label {
+    color: #ffffff;
+}
+
+button {
+    background: #0f0f1a;
+    color: #ffffff;
+    border: 1px solid #2a2a40;
+    border-radius: 6px;
+    padding: 6px 16px;
+}
+
+entry {
+    background: #0f0f1a;
+    color: #ffffff;
+    border: 1px solid #2a2a40;
+    border-radius: 4px;
+}
+
+combobox {
+    background: #0f0f1a;
+    color: #ffffff;
+    border: 1px solid #2a2a40;
+    border-radius: 4px;
+}
+
+combobox window {
+    background: #0f0f1a;
+    color: #ffffff;
+}
+
+spinbutton {
+    background: #0f0f1a;
+    color: #ffffff;
+    border: 1px solid #2a2a40;
+    border-radius: 4px;
+}
+
+checkbutton {
+    color: #ffffff;
+}
+
 .sidebar {
     background: #0d0d14;
     border-right: 1px solid #1e1e2e;

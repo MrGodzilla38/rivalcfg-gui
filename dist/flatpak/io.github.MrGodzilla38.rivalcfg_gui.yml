@@ -9,6 +9,7 @@ finish-args:
   - --share=ipc
   - --device=dri
   - --device=all
+  - --env=GTK_THEME=Adwaita:dark
   - --filesystem=/run/udev:ro
   - --filesystem=/sys/bus/usb:ro
   - --filesystem=/sys/bus/hid:ro
@@ -50,6 +51,7 @@ modules:
       - install -Dm644 dist/flatpak/io.github.MrGodzilla38.rivalcfg_gui.desktop /app/share/applications/io.github.MrGodzilla38.rivalcfg_gui.desktop
       - install -Dm644 dist/flatpak/io.github.MrGodzilla38.rivalcfg_gui.metainfo.xml /app/share/metainfo/io.github.MrGodzilla38.rivalcfg_gui.metainfo.xml
       - install -Dm644 assets/logo.png /app/share/icons/hicolor/256x256/apps/io.github.MrGodzilla38.rivalcfg_gui.png
+      - cp -r assets /app/lib/rivalcfg-gui/assets
     sources:
       - type: dir
         path: ../..
