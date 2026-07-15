@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.MrGodzilla38.rivalcfg_gui</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <developer_name>MrGodzilla38</developer_name>
+  <name>RivalCFG GUI</name>
+  <summary>Configure SteelSeries gaming mice on Linux</summary>
+  <description>
+    <p>A Linux desktop configuration tool for SteelSeries mice. Features include DPI settings, polling rate, RGB lighting control, button mapping, profile management, and an auto-clicker.</p>
+  </description>
+  <categories>
+    <category>Utility</category>
+    <category>Settings</category>
+    <category>HardwareSettings</category>
+  </categories>
+  <url type="homepage">https://github.com/MrGodzilla38/rivalcfg-gui</url>
+  <url type="bugtracker">https://github.com/MrGodzilla38/rivalcfg-gui/issues</url>
+  <screenshots>
+    <screenshot type="default">
+      <image>https://raw.githubusercontent.com/MrGodzilla38/rivalcfg-gui/main/assets/logo.png</image>
+    </screenshot>
+  </screenshots>
+  <launchable type="desktop-id">io.github.MrGodzilla38.rivalcfg_gui.desktop</launchable>
+  <content_rating type="oars-1.0"/>
+  <translation type="gettext">rivalcfg_gui</translation>
+</component>

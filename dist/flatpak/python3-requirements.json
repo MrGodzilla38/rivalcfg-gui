@@ -1,0 +1,130 @@
+{
+    "name": "python3-requirements",
+    "buildsystem": "simple",
+    "build-commands": [],
+    "modules": [
+        {
+            "name": "python3-evdev",
+            "buildsystem": "simple",
+            "build-commands": [
+                "pip3 install --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} \"evdev>=1.7.1\" --no-build-isolation"
+            ],
+            "sources": [
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/a5/f5/397b61091120a9ca5001041dd7bf76c385b3bfd67a0e5bcb74b852bd22a4/evdev-1.9.3.tar.gz",
+                    "sha256": "2c140e01ac8437758fa23fe5c871397412461f42d421aa20241dc8fe8cfccbc9",
+                    "x-checker-data": {
+                        "type": "pypi",
+                        "name": "evdev"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "python3-pynput",
+            "buildsystem": "simple",
+            "build-commands": [
+                "pip3 install --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} \"pynput>=1.7.7\" --no-build-isolation"
+            ],
+            "sources": [
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/a5/f5/397b61091120a9ca5001041dd7bf76c385b3bfd67a0e5bcb74b852bd22a4/evdev-1.9.3.tar.gz",
+                    "sha256": "2c140e01ac8437758fa23fe5c871397412461f42d421aa20241dc8fe8cfccbc9",
+                    "x-checker-data": {
+                        "type": "pypi",
+                        "name": "evdev"
+                    }
+                },
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/6d/98/bbeb760852adb27f166ce1617f0e51aabb15f21b1e60ea703f2aed3c78ac/pynput-1.8.2-py2.py3-none-any.whl",
+                    "sha256": "8cc38cf13a6ab2749cb375678be8a0fd705d7ce49c8001ff5db4007a723bbef1",
+                    "x-checker-data": {
+                        "type": "pypi",
+                        "name": "pynput",
+                        "packagetype": "bdist_wheel"
+                    }
+                },
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/fc/b8/ff33610932e0ee81ae7f1269c890f697d56ff74b9f5b2ee5d9b7fa2c5355/python_xlib-0.33-py2.py3-none-any.whl",
+                    "sha256": "c3534038d42e0df2f1392a1b30a15a4ff5fdc2b86cfa94f072bf11b10a164398",
+                    "x-checker-data": {
+                        "type": "pypi",
+                        "name": "python-xlib",
+                        "packagetype": "bdist_wheel"
+                    }
+                },
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/b7/ce/149a00dd41f10bc29e5921b496af8b574d8413afcd5e30dfa0ed46c2cc5e/six-1.17.0-py2.py3-none-any.whl",
+                    "sha256": "4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274",
+                    "x-checker-data": {
+                        "type": "pypi",
+                        "name": "six",
+                        "packagetype": "bdist_wheel"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "python3-python-xlib",
+            "buildsystem": "simple",
+            "build-commands": [
+                "pip3 install --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} \"python-xlib>=0.33\" --no-build-isolation"
+            ],
+            "sources": [
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/fc/b8/ff33610932e0ee81ae7f1269c890f697d56ff74b9f5b2ee5d9b7fa2c5355/python_xlib-0.33-py2.py3-none-any.whl",
+                    "sha256": "c3534038d42e0df2f1392a1b30a15a4ff5fdc2b86cfa94f072bf11b10a164398",
+                    "x-checker-data": {
+                        "type": "pypi",
+                        "name": "python-xlib",
+                        "packagetype": "bdist_wheel"
+                    }
+                },
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/b7/ce/149a00dd41f10bc29e5921b496af8b574d8413afcd5e30dfa0ed46c2cc5e/six-1.17.0-py2.py3-none-any.whl",
+                    "sha256": "4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274",
+                    "x-checker-data": {
+                        "type": "pypi",
+                        "name": "six",
+                        "packagetype": "bdist_wheel"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "python3-rivalcfg",
+            "buildsystem": "simple",
+            "build-commands": [
+                "pip3 install --verbose --exists-action=i --no-index --find-links=\"file://${PWD}\" --prefix=${FLATPAK_DEST} \"rivalcfg>=4.17.0\" --no-build-isolation"
+            ],
+            "sources": [
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/74/f6/caad9ed701fbb9223eb9e0b41a5514390769b4cb3084a2704ab69e9df0fe/hidapi-0.15.0.tar.gz",
+                    "sha256": "ecbc265cbe8b7b88755f421e0ba25f084091ec550c2b90ff9e8ddd4fcd540311",
+                    "x-checker-data": {
+                        "type": "pypi",
+                        "name": "hidapi"
+                    }
+                },
+                {
+                    "type": "file",
+                    "url": "https://files.pythonhosted.org/packages/bf/93/883473eeeb021adc773d166ddd53502046d45e642fd9a515605c62f064bc/rivalcfg-4.17.0-py3-none-any.whl",
+                    "sha256": "cb98a621466cfa0f517e2ecdf943c08772508b1dedc3e1a6ceb6a5129b411b07",
+                    "x-checker-data": {
+                        "type": "pypi",
+                        "name": "rivalcfg",
+                        "packagetype": "bdist_wheel"
+                    }
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=RivalCFG GUI
+GenericName=SteelSeries Mouse Configurator
+Comment=Configure SteelSeries gaming mice
+Exec=rivalcfg-gui
+Icon=io.github.MrGodzilla38.rivalcfg_gui
+Terminal=false
+Categories=Utility;Settings;HardwareSettings;
+StartupWMClass=rivalcfg-gui

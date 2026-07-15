@@ -1,0 +1,4 @@
+evdev>=1.7.1
+pynput>=1.7.7
+python-xlib>=0.33
+rivalcfg>=4.17.0

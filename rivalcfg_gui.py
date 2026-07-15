@@ -12,7 +12,13 @@ import locale
 import logging
 from logging.handlers import TimedRotatingFileHandler
 
-LOCALE_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "locales")
+def _get_locale_dir():
+    locale_env = os.environ.get("RIVALCFG_GUI_LOCALE_DIR")
+    if locale_env:
+        return locale_env
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), "locales")
+
+LOCALE_DIR = _get_locale_dir()
 
 def setup_gettext(lang=None):
     """Setup gettext translation for the given language."""
@@ -60,8 +66,10 @@ except ImportError:
     X11_AVAILABLE = False
 
 SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
+FLATPAK_ID = os.environ.get("FLATPAK_ID")
+IN_FLATPAK = FLATPAK_ID is not None
 
-# Prefer bundled rivalcfg binary, fall back to system PATH
+# Prefer bundled rivalcfg binary, fall back to pip-installed or system PATH
 def _find_rivalcfg():
     bundled = os.path.join(SCRIPT_DIR, "rivalcfg")
     if os.path.isfile(bundled) and os.access(bundled, os.X_OK):
@@ -81,7 +89,8 @@ except FileNotFoundError:
 # Global dictionary holding application state
 app_state = {}
 
-SETTINGS_DIR = os.path.expanduser("~/.config/rivalcfg-gui")
+SETTINGS_DIR = os.environ.get("XDG_CONFIG_HOME", os.path.expanduser("~/.config"))
+SETTINGS_DIR = os.path.join(SETTINGS_DIR, "rivalcfg-gui")
 SETTINGS_FILE = os.path.join(SETTINGS_DIR, "settings.json")
 LOGS_DIR = os.path.join(SETTINGS_DIR, "logs")
 
@@ -635,6 +644,16 @@ class MacroEngine:
         self._toggle_mouse_listener = None
         self._toggle_stop_event = threading.Event()
 
+    def _helper_path(self):
+        helper = os.path.join(SCRIPT_DIR, "evdev_helper")
+        if os.path.exists(helper):
+            return helper
+        if IN_FLATPAK:
+            candidate = "/app/lib/rivalcfg-gui/evdev_helper"
+            if os.path.exists(candidate):
+                return candidate
+        return helper
+
     def _resolve_keycode(self, trigger_key):
         from Xlib import display as xd, XK
         name_map = {
@@ -696,18 +715,21 @@ class MacroEngine:
 
     def _ensure_helper_setup(self):
         """Ensure evdev_helper exists and is setuid root. Shows pkexec dialog if needed."""
-        helper_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "evdev_helper")
+        helper_path = self._helper_path()
         if not os.path.exists(helper_path):
             logging.error("evdev_helper binary not found")
             return False
+        if IN_FLATPAK:
+            return True
         st = os.stat(helper_path)
         if (st.st_mode & 0o4000) and (st.st_uid == 0):
             return True
         logging.info("Helper not setuid, trying pkexec setup...")
         GLib.idle_add(self._set_status_text, _("Setting up helper (enter password)..."))
         try:
+            pkexec_cmd = ["flatpak-spawn", "--host", "pkexec"] if IN_FLATPAK else ["pkexec"]
             proc = subprocess.Popen(
-                ["pkexec", "sh", "-c",
+                pkexec_cmd + ["sh", "-c",
                  f"chown root:root '{helper_path}' && chmod u+s '{helper_path}'"],
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE
             )
@@ -732,9 +754,7 @@ class MacroEngine:
         if not self._ensure_helper_setup():
             GLib.idle_add(self._set_status_text, _("Helper setup failed"))
             return
-        helper_path = os.path.join(
-            os.path.dirname(os.path.realpath(__file__)), "evdev_helper"
-        )
+        helper_path = self._helper_path()
         proc = None
         try:
             logging.info("Launching helper: %s --device %s --keycode %s",

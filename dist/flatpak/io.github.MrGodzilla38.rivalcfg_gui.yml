@@ -1,0 +1,55 @@
+id: io.github.MrGodzilla38.rivalcfg_gui
+runtime: org.gnome.Platform
+runtime-version: '50'
+sdk: org.gnome.Sdk
+command: run.sh
+finish-args:
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --share=ipc
+  - --device=dri
+  - --device=all
+  - --filesystem=/run/udev:ro
+  - --filesystem=/sys/bus/usb:ro
+  - --filesystem=/sys/bus/hid:ro
+  - --talk-name=org.freedesktop.Flatpak
+
+cleanup:
+  - /include
+  - /lib/pkgconfig
+  - /man
+  - /share/doc
+  - /share/gtk-doc
+  - /share/man
+  - /share/pkgconfig
+  - '*.la'
+  - '*.a'
+
+modules:
+  - python3-requirements.json
+
+  - name: evdev_helper
+    buildsystem: simple
+    build-commands:
+      - cc -O2 -Wall -o evdev_helper evdev_helper.c
+      - install -Dm755 evdev_helper /app/lib/rivalcfg-gui/evdev_helper
+    sources:
+      - type: file
+        path: ../../evdev_helper.c
+
+  - name: rivalcfg-gui
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 rivalcfg_gui.py /app/lib/rivalcfg-gui/rivalcfg_gui.py
+      - install -Dm755 dist/flatpak/run.sh /app/bin/run.sh
+      - |
+        for lang_dir in locales/*/LC_MESSAGES; do
+          lang=$(basename "$(dirname "$lang_dir")")
+          install -Dm644 "$lang_dir/rivalcfg_gui.mo" "/app/share/locale/$lang/LC_MESSAGES/rivalcfg_gui.mo"
+        done
+      - install -Dm644 dist/flatpak/io.github.MrGodzilla38.rivalcfg_gui.desktop /app/share/applications/io.github.MrGodzilla38.rivalcfg_gui.desktop
+      - install -Dm644 dist/flatpak/io.github.MrGodzilla38.rivalcfg_gui.metainfo.xml /app/share/metainfo/io.github.MrGodzilla38.rivalcfg_gui.metainfo.xml
+      - install -Dm644 assets/logo.png /app/share/icons/hicolor/256x256/apps/io.github.MrGodzilla38.rivalcfg_gui.png
+    sources:
+      - type: dir
+        path: ../..
