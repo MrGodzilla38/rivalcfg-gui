@@ -59,9 +59,20 @@ try:
 except ImportError:
     X11_AVAILABLE = False
 
+SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
+
+# Prefer bundled rivalcfg binary, fall back to system PATH
+def _find_rivalcfg():
+    bundled = os.path.join(SCRIPT_DIR, "rivalcfg")
+    if os.path.isfile(bundled) and os.access(bundled, os.X_OK):
+        return bundled
+    return "rivalcfg"
+
+RIVALCFG_BIN = _find_rivalcfg()
+
 # Check rivalcfg CLI availability
 try:
-    subprocess.run(["rivalcfg"], capture_output=True, timeout=5)
+    subprocess.run([RIVALCFG_BIN], capture_output=True, timeout=5)
 except FileNotFoundError:
     logging.critical("rivalcfg is not installed. Install: pip install rivalcfg")
     print(_("rivalcfg is not installed. Install: pip install rivalcfg"))
@@ -472,7 +483,7 @@ def run_rivalcfg(args, on_done=None):
     def target():
         GLib.idle_add(set_status, "running", _("Processing..."))
         try:
-            cmd = ["rivalcfg"]
+            cmd = [RIVALCFG_BIN]
             if app_state.get("no_save"):
                 cmd.append("--no-save")
             cmd.extend(args)

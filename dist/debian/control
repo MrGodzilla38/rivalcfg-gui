@@ -3,14 +3,17 @@ Maintainer: MrGodzilla38 <oyunustasigodzilla@gmail.com>
 Section: x11
 Priority: optional
 Standards-Version: 4.6.0
-Build-Depends: debhelper-compat (= 13)
+Build-Depends: debhelper-compat (= 13), wget
 Homepage: https://github.com/MrGodzilla38/rivalcfg-gui
 
 Package: rivalcfg-gui
-Architecture: all
-Depends: python3, python3-gi, python3-cairo, python3-rivalcfg, python3-evdev, python3-pynput, python3-xlib
+Architecture: amd64
+Depends: python3, python3-gi, python3-cairo, python3-evdev, python3-pynput, python3-xlib
 Description: GTK3 GUI configuration tool for SteelSeries mice (via rivalcfg)
  RivalCFG GUI is a Linux desktop application for configuring
  SteelSeries mouse settings including DPI, polling rate,
  RGB lighting, and button mappings through a modern GTK3 interface.
  Works with all devices supported by the rivalcfg CLI tool.
+ .
+ This package bundles a standalone rivalcfg binary (x86_64) and does
+ not require rivalcfg to be installed separately.

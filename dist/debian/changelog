@@ -1,6 +1,12 @@
 rivalcfg-gui (1.4.0-1) unstable; urgency=medium
 
   * Release 1.4.0.
+  * Fix Debian packaging: bundle standalone rivalcfg binary instead of
+    depending on unavailable python3-rivalcfg package.
+  * Add wget build-dependency for downloading standalone rivalcfg.
+  * Change Architecture from 'all' to 'amd64' (bundled binary is x86_64).
+  * Add SCRIPT_DIR / _find_rivalcfg() logic: the GUI now prefers a
+    bundled rivalcfg binary in its own directory, falling back to PATH.
 
  -- MrGodzilla38 <oyunustasigodzilla@gmail.com>  Sat, 20 Jun 2026 08:17:24 +0000
 

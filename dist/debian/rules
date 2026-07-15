@@ -1,15 +1,24 @@
 #!/usr/bin/make -f
+RIVALCFG_VERSION := 4.17.0
+RIVALCFG_URL := https://github.com/flozz/rivalcfg/releases/download/v$(RIVALCFG_VERSION)/rivalcfg-cli_v$(RIVALCFG_VERSION)_linux_x86_64.tar.gz
+RIVALCFG_TAR := rivalcfg-cli_v$(RIVALCFG_VERSION)_linux_x86_64.tar.gz
+RIVALCFG_SHA256 := d8881925f60a00b3ca41a9cd92e73d2ddcb67be15e836ee468740d1f8bbca394
+
 %:
 	dh $@
 
 override_dh_auto_build:
 	gcc -O2 -o evdev_helper evdev_helper.c
+	wget -q -O $(RIVALCFG_TAR) $(RIVALCFG_URL)
+	echo "$(RIVALCFG_SHA256)  $(RIVALCFG_TAR)" | sha256sum -c -
+	tar xzf $(RIVALCFG_TAR)
 
 override_dh_auto_install:
 	install -d debian/rivalcfg-gui/usr/share/rivalcfg-gui
 	install -d debian/rivalcfg-gui/usr/share/rivalcfg-gui/assets
 	install -Dm755 rivalcfg_gui.py debian/rivalcfg-gui/usr/share/rivalcfg-gui/rivalcfg_gui.py
 	install -Dm755 evdev_helper debian/rivalcfg-gui/usr/share/rivalcfg-gui/evdev_helper
+	install -Dm755 rivalcfg-cli_v$(RIVALCFG_VERSION)_linux_x86_64/rivalcfg debian/rivalcfg-gui/usr/share/rivalcfg-gui/rivalcfg
 	install -Dm644 assets/logo.png debian/rivalcfg-gui/usr/share/rivalcfg-gui/assets/logo.png
 	install -Dm644 assets/rival3.png debian/rivalcfg-gui/usr/share/rivalcfg-gui/assets/rival3.png
 	install -Dm644 assets/pencil.svg debian/rivalcfg-gui/usr/share/rivalcfg-gui/assets/pencil.svg
